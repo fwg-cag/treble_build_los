@@ -1,0 +1,24 @@
+From 3fb27b3b3ab30a86432d2ca1f8fe5c3802793866 Mon Sep 17 00:00:00 2001
+From: Andy CrossGate Yan <GeForce8800Ultra@gmail.com>
+Date: Wed, 23 Oct 2019 09:38:16 +0000
+Subject: [PATCH] Add libbase to libhwui deps
+
+Required
+
+Change-Id: I7c63c9aed39afc07b8c80918053154113f848cd9
+---
+ libs/hwui/Android.bp b/libs/hwui/Android.bp | 3 ---
+ 1 file changed, 1 additions(-)
+
+diff --git a/libs/hwui/Android.bp b/libs/hwui/Android.bp
+index ebba4cb79df..00000000000 100644
+--- a/libs/hwui/Android.bp
++++ b/libs/hwui/Android.bp
+@@ -70,6 +70,7 @@ cc_defaults {
+         "libandroidfw",
+         "libcrypto",
+         "libsync",
++        "libbase",
+     ],
+     static_libs: [
+         "libEGL_blobCache",

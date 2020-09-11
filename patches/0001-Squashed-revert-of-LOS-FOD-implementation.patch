@@ -132,11 +132,10 @@ index fd732a7127a..e520306aa78 100644
      <integer name="config_maxVisibleNotificationIcons">4</integer>
      <integer name="config_maxVisibleNotificationIconsOnLock">5</integer>
 diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/FODCircleView.java b/packages/SystemUI/src/com/android/systemui/biometrics/FODCircleView.java
-deleted file mode 100644
-index a1691b9cb69..00000000000
+index 00172dd8f3e..00000000000 100644
 --- a/packages/SystemUI/src/com/android/systemui/biometrics/FODCircleView.java
-+++ /dev/null
-@@ -1,465 +0,0 @@
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/FODCircleView.java
+@@ -1,466 +0,0 @@
 -/**
 - * Copyright (C) 2019 The Android Open Source Project
 - *
@@ -340,6 +339,7 @@ index a1691b9cb69..00000000000
 -                super.onDraw(canvas);
 -            }
 -        };
+-        mPressedView.setImageResource(R.drawable.fod_icon_pressed);
 -
 -        mWindowManager.addView(this, mParams);
 -
@@ -602,6 +602,7 @@ index a1691b9cb69..00000000000
 -        }
 -    };
 -}
+
 diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/FODCircleViewImpl.java b/packages/SystemUI/src/com/android/systemui/biometrics/FODCircleViewImpl.java
 deleted file mode 100644
 index fb3c07af6a6..00000000000

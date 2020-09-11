@@ -6,4 +6,5 @@
   <project name="phhusson/vendor_vndk-tests" path="vendor/vndk-tests" remote="github" revision="master" />
   <project name="phhusson/vendor_interfaces" path="vendor/interfaces" remote="github" revision="pie" />
   <project name="phhusson/vendor_magisk" path="vendor/magisk" remote="github" revision="android-10.0" />
+  <project name="lineageos4microg/android_prebuilts_prebuiltapks" path="prebuilts/prebuiltapks" remote="github" revision="master" />
 </manifest>
