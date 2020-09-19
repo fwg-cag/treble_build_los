@@ -1,5 +1,6 @@
 #!/bin/bash
-# You may set, e.g. NPROC=2 and _JAVA_OPTIONS=-Xmx3061500416 to avoid java running out of heap with limited RAM
+# You may want to set, e.g. NPROC=2 and _JAVA_OPTIONS=-Xmx3061500416 to avoid java running out of heap with limited RAM
+# Set OTA_DEVICE to get the right pre-device into the OTA zip file
 # Set OTA_URL in case you want to follow https://forum.xda-developers.com/chef-central/android/guide-include-ota-updating-lineageos-t3944648
 # https://android.googlesource.com/platform/bootable/recovery/+/master/updater_sample/res/raw/sample.json
 
@@ -32,7 +33,8 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   echo ""
 
   echo "Syncing repos"
-  repo sync -c --force-sync --no-clone-bundle --no-tags -j$NPROC || exit 1
+  repo sync -c --force-sync --no-clone-bundle --no-tags -j$NPROC
+  # || touch --date="last week" .repo/.repo_fetchtimes.json; exit 1 GD todo
   echo ""
   
   echo "Preparing build environment"
@@ -177,83 +179,91 @@ buildVariant() {
 	make installclean || exit 1
 	make -j$NPROC dist || exit 1
 
-	# Pack GSI OTA packing, signing & producing sha265sum plus json - quick and dirty
-	# might be smoother with ota_from_target_files, but I didn't manage to
-	TMPD=$(mktemp -d)
-	rm -fr $TMPD/* $TMPD/.??*
-	unzip -o -d $TMPD $BL/otatemplate.zip || exit 1
-	if [ -d user-keys ]; then
-	  (cd $OUT/obj/PACKAGING/target_files_intermediates/ && unzip ${1}-target_files-*.zip META/otakeys.txt && echo user-keys/releasekey.x509.pem > META/otakeys.txt && zip -r ${1}-target_files-*.zip META/otakeys.txt)
-	 ./build/tools/releasetools/sign_target_files_apks -o -d user-keys \
-	   $OUT/obj/PACKAGING/target_files_intermediates/${1}-target_files-*.zip \
-	   $OUT/signed-target_files.zip
-	 cat user-keys/releasekey.x509.pem > $TMPD/META-INF/com/android/otacert
-	 KEYS="user-keys/release-keys"
-	else
-	 ln -s $OUT/obj/PACKAGING/target_files_intermediates/${1}-target_files-*.zip \
-	    $OUT/signed-target_files.zip
-	 cat build/target/product/security/testkey.x509.pem > $TMPD/META-INF/com/android/otacert
-	 KEYS="security/testkey"
-	fi
-	unzip -o -d $TMPD $OUT/signed-target_files.zip SYSTEM/build.prop IMAGES/system.img || exit 1
-	mv $TMPD/SYSTEM/build.prop $TMPD/system/build.prop && rm -fr $TMPD/SYSTEM || exit 1
-	simg2img $TMPD/IMAGES/system.img $TMPD/system.img && rm -fr $TMPD/IMAGES || exit 1
-	echo "ota-property-files=metadata:$(du -bs $TMPD | awk '{print $1}'):286" > $TMPD/META-INF/com/android/metadata
-	echo "ota-required-cache=0" >> $TMPD/META-INF/com/android/metadata
-	if [ $(echo $OUT | sed -e "s/.*_ab\/*$/ab/g") == "ab"  ]; then
-	  echo "ota-type=AB" >> $TMPD/META-INF/com/android/metadata
-	  cp vendor/lineage/prebuilt/common/bin/backuptool_ab.sh $TMPD/install/bin/
-	  cp vendor/lineage/prebuilt/common/bin/backuptool_ab.functions $TMPD/install/bin/
-	else    
-	  echo "ota-type=BLOCK" >> $TMPD/META-INF/com/android/metadata
-	fi
-	cp vendor/lineage/prebuilt/common/bin/backuptool.sh $TMPD/install/bin/
-	cp vendor/lineage/prebuilt/common/bin/backuptool.functions $TMPD/install/bin/
-	cp vendor/lineage/prebuilt/common/bin/backuptool_postinstall.sh $TMPD/install/bin/
-	JSON_NAME=$(grep ro.build.display.id $TMPD/system/build.prop | sed -e "s/ /\//g" | awk -F= '{print $2}')
-	echo "post-build=$JSON_NAME:$KEYS" >> $TMPD/META-INF/com/android/metadata
-	echo "post-sdk-level=29" >> $TMPD/META-INF/com/android/metadata
-	echo "post-security-patch-level=$(grep ro.build.version.security_patch $TMPD/system/build.prop | sed -e "s/ /\//g" | awk -F= '{print $2}'):$KEYS" >> $TMPD/META-INF/com/android/metadata
-	echo "post-timestamp=$(cat out/build_date.txt)" >> $TMPD/META-INF/com/android/metadata
-	BUILD=lineage-17.1-$BUILD_DATE-UNOFFICIAL-${1}.zip
-	(cd $TMPD; zip -r $OUT/ota_update.zip *) || exit 1
-	rm -fr $TMPD
-	if [ -d user-keys ]; then
-	  build/tools/releasetools/sign_zip.py -k user-keys/releasekey $OUT/ota_update.zip ~/build-output/$BUILD || exit 1
-	  rm -f $OUT/ota_update.zip
-	else
-	  mv -f $OUT/ota_update.zip ~/build-output/$BUILD || exit 1
-	fi
-        (cd ~/build-output; sha256sum "$BUILD" > "$BUILD.sha256sum") || exit 1
-	if ! [ -z "$OTA_URL" ]; then
-	  JSON_URL="$(echo $OTA_URL | sed -e "s/\(.*\)\/.*$/\1/")/$BUILD"
-	  cat <<EOT > ~/build-output/$BUILD.json
+	BUILD=lineage-17.1-$BUILD_DATE-UNOFFICIAL-${1}
+	if ! [ -z "$OTA_URL" || -z "$OTA_DEVICE" ]; then
+	  # GSI OTA packing, signing & producing sha265sums plus json - quick and dirty
+	  # GSI target_files need to be amended to enable ota_from_target_files running properly ...
+	  # not yet checked with user.keys!!!
+	  TMPD=$(mktemp -d)
+	  rm -fr $TMPD/* $TMPD/.??*
+	  cp -f $OUT/obj/PACKAGING/target_files_intermediates/${1}-target_files-*.zip /tmp/signed-target_files.zip
+	  # Remove obsolete files for this purpose
+	  zip -d /tmp/signed-target_files.zip IMAGES/cache.img IMAGES/vendor.img IMAGES/vendor.map
+	  # Force right OTA device ro.product.device
+	  unzip -o -d $TMPD /tmp/signed-target_files.zip SYSTEM/build.prop &&
+	      grep -v "^[^\#]*ro.product.device" $TMPD/SYSTEM/build.prop > ${TMPD}__ &&
+	      mv -f ${TMPD}__ $TMPD/SYSTEM/build.prop &&
+	      echo "ro.product.device=$OTA_DEVICE" >> $TMPD/SYSTEM/build.prop
+	  unzip -o -d $TMPD /tmp/signed-target_files.zip META/misc_info.txt &&
+	      grep -v "^[^\#]*override_device" $TMPD/META/misc_info.txt > ${TMPD}__ &&
+	      mv -f ${TMPD}__ $TMPD/META/misc_info.txt &&
+	      echo "override_device=$OTA_DEVICE" >> $TMPD/META/misc_info.txt
+	  # Only the system partion shall be fed into OTA
+	  echo "system" > $TMPD/META/ab_partitions.txt
+	  # Add update_engine config data
+	  echo "PAYLOAD_MAJOR_VERSION=2" > $TMPD/META/update_engine_config.txt
+	  echo "PAYLOAD_MINOR_VERSION=4" >> $TMPD/META/update_engine_config.txt
+	  # Add postinstall config
+	  cat <<EOT > $TMPD/META/postinstall_config.txt
+RUN_POSTINSTALL_system=true
+POSTINSTALL_PATH_system=system/bin/otapreopt_script
+FILESYSTEM_TYPE_system=ext4
+POSTINSTALL_OPTIONAL_system=true
+EOT
+	  if [ -d user-keys ]; then
+#	    echo "vbmeta" >> $TMPD/META/ab_partitions.txt
+	    echo user-keys/releasekey.x509.pem > $TMPD/META/otakeys.txt
+# ??? extra recovery-only key(s): vendor/lineage/build/target/product/security/lineage.x509.pem
+	    (cd $TMPD; zip -r ../signed-target_files.zip *)
+	    ./build/tools/releasetools/sign_target_files_apks -o -d user-keys \
+							      /tmp/signed-target_files.zip \
+							      $OUT/signed-target_files.zip || exit 1
+	    KEYS="user-keys/release-keys"
+	  else
+	    # Remove more obsolete files for this purpose
+	    zip -d /tmp/signed-target_files.zip IMAGES/vbmeta.img META/otakeys.txt
+	    # Include the amendments above and sign
+	    (cd $TMPD; zip -r ../signed-target_files.zip *)
+	    ./build/tools/releasetools/sign_target_files_apks \
+		/tmp/signed-target_files.zip \
+		$OUT/signed-target_files.zip || exit 1
+	    KEYS="security/testkey"
+	  fi
+	  # Extract new system.img
+	  unzip -o -d $TMPD $OUT/signed-target_files.zip IMAGES/system.img
+	  mv -f $TMPD/IMAGES/system.img $OUT
+	  # Generate .json file
+	  JSON_NAME=$(grep ro.build.display.id $OUT/obj/PACKAGING/target_files_intermediates/${1}-target_files-*/SYSTEM/build.prop | sed -e "s/ /\//g" | awk -F= '{print $2}')
+	  ./build/make/tools/releasetools/ota_from_target_files $OUT/signed-target_files.zip $OUT/ota_update.zip || exit 1
+	  # Note: Testing to install the payload.bin on the device can be done via 
+	  # update_engine_client --payload=file:///data/ota_package/payload.bin --update --follow --headers="FILE_HASH=(...)"
+	  rm -fr $TMPD /tmp/signed-target_files.zip
+#	  if [ -d user-keys ]; then
+#	    build/tools/releasetools/sign_zip.py -k user-keys/releasekey $OUT/ota_update.zip ~/build-output/$BUILD.zip || exit 1
+#	    rm -f $OUT/ota_update.zip
+#	  else
+	    mv -f $OUT/ota_update.zip ~/build-output/$BUILD.zip || exit 1
+#	  fi
+          (cd ~/build-output; sha256sum "$BUILD.zip" > "$BUILD.zip.sha256sum") || exit 1
+	  JSON_URL="$(echo $OTA_URL | sed -e "s/\(.*\)\/.*$/\1/")/$BUILD.zip"
+	  cat <<EOT > ~/build-output/$BUILD.zip.json
 {
   "response": [
     {
       "datetime": $(cat out/build_date.txt),
-      "filename": "$BUILD",
+      "filename": "$BUILD.zip",
       "id": "$JSON_NAME",
       "romtype": "unofficial",
-      "size": $(du -bs ~/build-output/$BUILD | awk '{print $1}'),
+      "size": $(du -bs ~/build-output/$BUILD.zip | awk '{print $1}'),
       "url": "$JSON_URL",
       "version": "17.1"
     }
   ]
+}
 EOT
-	  if [ $(echo $OUT | sed -e "s/.*_ab\/*$/ab/g") == "ab"  ]; then
-	    cat <<EOT >> ~/build-output/$BUILD.json
-,
-  "name": "$JSON_NAME",
-  "url": "$JSON_URL",
-  "ab_install_type": "NON_STREAMING",
-  "ab_config": {
-      "force_switch_slot": true
-  }
-EOT
-	  fi
-	  echo "}" >> ~/build-output/$BUILD.json
 	fi
+	cp -f $OUT/system.img ~/build-output/$BUILD.img || exit 1
+        (cd ~/build-output; sha256sum "$BUILD.img" > "$BUILD.img.sha256sum") || exit 1
 } # of buildVariant()
 
 #buildVariant treble_arm_avN
@@ -262,10 +272,10 @@ EOT
 #buildVariant treble_a64_bvN
 #buildVariant treble_arm64_avN
 buildVariant treble_arm64_bvN
-(cd ~/build-output && ls | grep "lineage-*-$BUILD_DATE-*.zip*")
 
 END=`date +%s`
 ELAPSEDM=$(($(($END-$START))/60))
 ELAPSEDS=$(($(($END-$START))-$ELAPSEDM*60))
 echo "Buildbot completed in $ELAPSEDM minutes and $ELAPSEDS seconds"
 echo ""
+(cd ~/build-output && ls | grep "lineage-17.1-$BUILD_DATE-*")
