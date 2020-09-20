@@ -182,8 +182,7 @@ buildVariant() {
 	BUILD=lineage-17.1-$BUILD_DATE-UNOFFICIAL-${1}
 	if ! [ -z "$OTA_URL" || -z "$OTA_DEVICE" ]; then
 	  # GSI OTA packing, signing & producing sha265sums plus json - quick and dirty
-	  # GSI target_files need to be amended to enable ota_from_target_files running properly ...
-	  # not yet checked with user.keys!!!
+	  # GSI target_files need to be amended as done below to enable ota_from_target_files running properly ...
 	  TMPD=$(mktemp -d)
 	  rm -fr $TMPD/* $TMPD/.??*
 	  cp -f $OUT/obj/PACKAGING/target_files_intermediates/${1}-target_files-*.zip /tmp/signed-target_files.zip
@@ -213,7 +212,7 @@ EOT
 	  if [ -d user-keys ]; then
 #	    echo "vbmeta" >> $TMPD/META/ab_partitions.txt
 	    echo user-keys/releasekey.x509.pem > $TMPD/META/otakeys.txt
-# ??? extra recovery-only key(s): vendor/lineage/build/target/product/security/lineage.x509.pem
+# No extra recovery-only key(s) vendor/lineage/build/target/product/security/lineage.x509.pem needed
 	    (cd $TMPD; zip -r ../signed-target_files.zip *)
 	    ./build/tools/releasetools/sign_target_files_apks -o -d user-keys \
 							      /tmp/signed-target_files.zip \
@@ -238,12 +237,7 @@ EOT
 	  # Note: Testing to install the payload.bin on the device can be done via 
 	  # update_engine_client --payload=file:///data/ota_package/payload.bin --update --follow --headers="FILE_HASH=(...)"
 	  rm -fr $TMPD /tmp/signed-target_files.zip
-#	  if [ -d user-keys ]; then
-#	    build/tools/releasetools/sign_zip.py -k user-keys/releasekey $OUT/ota_update.zip ~/build-output/$BUILD.zip || exit 1
-#	    rm -f $OUT/ota_update.zip
-#	  else
-	    mv -f $OUT/ota_update.zip ~/build-output/$BUILD.zip || exit 1
-#	  fi
+	  mv -f $OUT/ota_update.zip ~/build-output/$BUILD.zip || exit 1
           (cd ~/build-output; sha256sum "$BUILD.zip" > "$BUILD.zip.sha256sum") || exit 1
 	  JSON_URL="$(echo $OTA_URL | sed -e "s/\(.*\)\/.*$/\1/")/$BUILD.zip"
 	  cat <<EOT > ~/build-output/$BUILD.zip.json
