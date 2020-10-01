@@ -26,7 +26,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   for path in "device/phh/treble" "vendor/lineage" "frameworks/base" "prebuilts/prebuiltapks"; do
     (cd "$path" && git reset -q --hard && git clean -q -fd && git am --abort 2>/dev/null)
   done
-  
+
   echo "Preparing local manifest"
   mkdir -p .repo/local_manifests
   cp $BL/manifest.xml .repo/local_manifests/manifest.xml
@@ -36,7 +36,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   repo sync -c --force-sync --no-clone-bundle --no-tags -j$NPROC
   # || touch --date="last week" .repo/.repo_fetchtimes.json; exit 1 GD todo
   echo ""
-  
+
   echo "Preparing build environment"
   source build/envsetup.sh &> /dev/null
   echo ""
@@ -180,7 +180,7 @@ buildVariant() {
 	make -j$NPROC dist || exit 1
 
 	BUILD=lineage-17.1-$BUILD_DATE-UNOFFICIAL-${1}
-	if ! [ -z "$OTA_URL" || -z "$OTA_DEVICE" ]; then
+	if ! [ -z "$OTA_URL" ] && ! [ -z "$OTA_DEVICE" ]; then
 	  # GSI OTA packing, signing & producing sha265sums plus json - quick and dirty
 	  # GSI target_files need to be amended as done below to enable ota_from_target_files running properly ...
 	  TMPD=$(mktemp -d)
