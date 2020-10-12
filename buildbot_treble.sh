@@ -112,6 +112,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   cd ../../..
   cd system/sepolicy
   git revert d12551bf1a6e8a9ece6bbb98344a27bde7f9b3e1 --no-edit # sepolicy: Relabel wifi. properties as wifi_prop
+  git am $BL/patches/0001-Revert-sepolicy-Address-denials-for-legacy-last_kmsg.patch
   cd ../..
   cd vendor/lineage
   git am $BL/patches/0001-build_soong-Disable-generated_kernel_headers.patch
