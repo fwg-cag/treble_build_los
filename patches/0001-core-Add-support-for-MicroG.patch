@@ -61,12 +61,12 @@ index 152b131af8f..f8d87a37064 100644
      <string name="permlab_statusBar">disable or modify status bar</string>
      <!-- Description of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
 diff --git a/services/core/java/com/android/server/pm/PackageManagerService.java b/services/core/java/com/android/server/pm/PackageManagerService.java
-index fb672a5231f..d5878ed9fc4 100644
+index d3b5fa30e8e..4a50e452800 100644
 --- a/services/core/java/com/android/server/pm/PackageManagerService.java
 +++ b/services/core/java/com/android/server/pm/PackageManagerService.java
-@@ -4111,8 +4111,9 @@ public class PackageManagerService extends IPackageManager.Stub
-             final Set<String> permissions = ArrayUtils.isEmpty(p.requestedPermissions)
-                     ? Collections.emptySet() : permissionsState.getPermissions(userId);
+@@ -4191,8 +4191,9 @@ public class PackageManagerService extends IPackageManager.Stub
+                 });
+             }
  
 -            PackageInfo packageInfo = PackageParser.generatePackageInfo(p, gids, flags,
 -                    ps.firstInstallTime, ps.lastUpdateTime, permissions, state, userId);
@@ -76,7 +76,7 @@ index fb672a5231f..d5878ed9fc4 100644
  
              if (packageInfo == null) {
                  return null;
-@@ -4148,6 +4149,24 @@ public class PackageManagerService extends IPackageManager.Stub
+@@ -4228,6 +4229,24 @@ public class PackageManagerService extends IPackageManager.Stub
          }
      }
  
@@ -102,5 +102,4 @@ index fb672a5231f..d5878ed9fc4 100644
      public void checkPackageStartable(String packageName, int userId) {
          final int callingUid = Binder.getCallingUid();
 -- 
-2.17.1
-
+2.25.1
