@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [[ -z $1 || $1 =~ ^(--help|help|-h)$ ]]; then
+	echo -e "\033[1mUsage\033[0m\n$0 \033[4marchive\033[0m\n\
+$0 --help|help|-h\n\n\033[1mDescription\033[0m\n\
+This script creates a userdata backup in a tgz \033[4marchive\033[0m from a connected phone via ADB root access.\n\
+--help, help, -h\n\tDisplay this help and exit"
+	exit 1
+fi
+adb shell 'ls /data/data' 1>/dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "========================================================="
+	echo "Killing ADB server"
+	adb kill-server
+	echo "Starting ADB server with sudo"
+	adb start-server && sudo adb start-server
+	echo "Starting ADB as root"
+	adb root
+	echo "========================================================="
+fi
+
+adb shell 'ls /data/data' 1>/dev/null 2>&1
+if [ $? -eq 0 ]; then
+	echo "Starting the backup ... be patient!"
+	adb shell 'cd /data; tar czf - --exclude="[Cc]ache/*" data misc user_de system media app' 2>&1 >$1 | 
+		grep -v "^tar: unknown file type" 1>&2
+	echo "Done."
+else
+	echo -e "\033[1;31mError: No root access to phone\033[0m" 1>&2
+fi

@@ -1,0 +1,125 @@
+#!/bin/bash
+
+# The following resources were used in the creation of this script:
+# https://github.com/joshuabragge/twrp-manual-restore/blob/master/load_packages.sh
+# https://www.semipol.de/2016/07/30/android-restoring-apps-from-twrp-backup.html
+# https://itsfoss.com/fix-error-insufficient-permissions-device/
+
+if [[ -z $1 || $1 =~ ^(--help|help|-h)$ ]]; then
+	echo -e "\033[1mUsage\033[0m\n$0 \033[4marchive[0...n]\033[0m\n\
+$0 --help|help|-h\n\n\033[1mDescription\033[0m\n\
+This script extracts a userdata backup tar, tgz or TWRP \033[4marchive[0...n]\033[0m \
+and restores the data to a connected phone via ADB root access.\n\
+Previously installed apps are reinstalled and settings are restored except account information.\n\
+--help, help, -h\n\tDisplay this help and exit"
+	exit 1
+fi
+
+# tar / TWRP location for data
+TMPD=$(mktemp -d)
+OLDWD=$PWD
+dataupdate='user_de/0 misc/profiles/cur/0 data' # data must be last!
+dataapks='app'
+datasystem='system'
+datamedia='media'
+remotebase='/data'
+remotesystem=$remotebase'/system'
+
+# ensure a working adb root connection
+adb shell 'ls /data/data' 1>/dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "========================================================="
+	echo "Killing ADB server"
+	adb kill-server
+	echo "Starting ADB server with sudo"
+	adb start-server || sudo adb start-server
+	echo "Starting ADB as root"
+	adb root
+	if [ $? -ne 0 ]; then
+		echo "========================================================="
+		echo -e "\033[1;31mError: No root access to phone\033[0m" 1>&2
+		exit 1
+	fi
+	echo "========================================================="
+fi
+
+# extract tar / TWRP archive to $TMPD and check that all required content is available
+for i in $@; do
+	if [ ! -z $(file $1 | grep "gzip compressed data") ]; then
+		tar xvzf $i -C $TMPD 2>/dev/null || break
+	else
+		tar xvf $i -C $TMPD 2>/dev/null || break
+	fi
+done
+for dir in $dataupdate $dataapks $datasystem; do
+	if [ ! -d $TMPD/$dir ]; then
+		echo -e "\033[1;31mError: Wrong archive: Couldn't find $dir\033[0m" 1>&2
+		chmod u+w -R $TMPD
+		rm -fr $TMPD
+		exit 1
+	fi
+done;
+
+# change to $TMPD
+cd $TMPD
+
+# remove all phh/treble and FP3 original firmware specific packages
+(cd data; rm -fr com.android.providers.partnerbookmarks \
+	com.android.internal.display.cutout.emulation.noCutoutGSI \
+	com.android.safetyregulatoryinfo \
+	com.android.service.ims* \
+	*\.phh.\* \
+)
+
+# filename(s) of all packages in data/data/ to restore
+packages=$(cd data; ls -d *)
+
+adb shell ls /data/data 1>/dev/null 2>&1
+if [ $? -eq 0 ]; then
+# restore all packages and their user settings. If required, re-install the package
+	for package in $packages; do
+		echo "========================================================="
+		userid=$(adb shell dumpsys package $package | grep userId | head -n 1 | cut -d "=" -f2-)
+		if [ -z $userid ]; then
+			(cd $dataapks/${package}*; adb install-multiple *.apk)
+			userid=$(adb shell dumpsys package $package | grep userId | head -n 1 | cut -d "=" -f2-)
+		fi
+		if [ -z $userid ]; then
+			echo "$package failed" 1>&2
+		else
+			printf "Killing %s ... " $package
+			adb shell am force-stop $package
+			printf "Clearing ... " $package
+			adb shell pm clear $package
+			printf "Restoring %s:\n" $package
+			for datadir in $dataupdate; do
+				adb push -p $datadir/$package $remotebase/$datadir
+				adb shell chown -R $userid:$userid $remotebase/$datadir/$package
+			done
+			adb shell restorecon -Rv $remotebase/$datadir/$package &&
+				echo "... $package restored on device"
+		fi
+	done
+
+# if available from the archive restore media
+	if [ -d $datamedia ]; then
+			adb push -p $datamedia $remotebase
+			adb shell chown -R media_rw:media_rw $remotebase/$datamedia
+	fi
+
+# restore user(s) settings and restart the android framework
+	adb push -p $datasystem/users $remotesystem
+	adb push -p $datasystem/locksettings.db $remotesystem
+	userid=$(adb shell dumpsys package android | grep userId | head -n 1 | cut -d "=" -f2-)
+	adb shell chown -R $userid:$userid $remotesystem
+	adb shell killall zygote
+else
+	echo -e "\033[1;31mError: No root access to phone\033[0m" 1>&2
+fi
+
+# cleanup
+cd $OLDWD
+chmod u+w -R $TMPD
+rm -fr $TMPD
+
+
