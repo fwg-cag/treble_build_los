@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <project name="LineageOS/android_device_fairphone_FP3" path="device/fairphone/FP3" remote="github" revision="lineage-17.1" />
+  <project name="LineageOS/android_kernel_fairphone_sdm632" path="kernel/fairphone/sdm632" remote="github" revision="lineage-17.1" />
+  <project name="lineageos4microg/android_prebuilts_prebuiltapks" path="prebuilts/prebuiltapks" remote="github" revision="master" />
+</manifest>
