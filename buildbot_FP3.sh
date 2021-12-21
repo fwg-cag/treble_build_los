@@ -5,7 +5,7 @@
 # https://android.googlesource.com/platform/bootable/recovery/+/master/updater_sample/res/raw/sample.json
 
 echo ""
-echo "LineageOS 17.x FP3 Buildbot"
+echo "LineageOS 18.x FP3 Buildbot"
 
 CUSTOM_PACKAGES="GmsCore GsfProxy FakeStore MozillaNlpBackend NominatimNlpBackend com.google.android.maps.jar FDroid FDroidPrivilegedExtension AuroraServices"
 START=`date +%s`
@@ -55,7 +55,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
 ##  echo ""
 
   echo "Applying universal patches"
-  cd frameworks/base
+  cd frameworks/base || exit
 ##  git am $BL/patches/0001-UI-Revive-navbar-layout-tuning-via-sysui_nav_bar-tun.patch
   # FAKE_SIGNATURE permission can be obtained only by privileged system apps
   # git am $BL/patches/0001-core-Add-support-for-MicroG.patch
@@ -64,6 +64,12 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   git am $TMPF
   rm -f $TMPF
   cd ../..
+  cd packages/apps/PermissionController || exit
+  git am $BL/patches/0001-permissioncontroller-Add-support-for-MicroG.patch
+  cd ../../..
+  cd packages/apps/Email || exit
+  git am $BL/patches/0001-Enable-EmailAPP-querability-R.patch
+  cd ../../..
 ##  cd lineage-sdk
 ##  git am $BL/patches/0001-sdk-Invert-per-app-stretch-to-fullscreen.patch
 ##  cd ..
@@ -139,7 +145,7 @@ buildVariant() {
 	make installclean || exit 1
 	mka bacon -j$NPROC || exit 1
 
-	BUILD=lineage-17.1-$BUILD_DATE-UNOFFICIAL-${1}
+	BUILD=lineage-18.1-$BUILD_DATE-UNOFFICIAL-${1}
 	if ! [ -z "$OTA_URL" ] && ! [ -z "$OTA_DEVICE" ]; then
 	  # Generate .json file
 	  JSON_NAME=$(grep ro.build.display.id $OUT/obj/PACKAGING/target_files_intermediates/*${1}-target_files-*/SYSTEM/build.prop | sed -e "s/ /\//g" | awk -F= '{print $2}')
@@ -158,7 +164,7 @@ buildVariant() {
       "romtype": "unofficial",
       "size": $(du -bs ~/build-output/$BUILD.zip | awk '{print $1}'),
       "url": "$JSON_URL",
-      "version": "17.1"
+      "version": "18.1"
     }
   ]
 }
@@ -173,4 +179,4 @@ ELAPSEDM=$(($(($END-$START))/60))
 ELAPSEDS=$(($(($END-$START))-$ELAPSEDM*60))
 echo "Buildbot completed in $ELAPSEDM minutes and $ELAPSEDS seconds"
 echo ""
-(cd ~/build-output && ls | grep "lineage-17.1-$BUILD_DATE-*")
+(cd ~/build-output && ls | grep "lineage-18.1-$BUILD_DATE-*")
