@@ -7,7 +7,7 @@
 echo ""
 echo "LineageOS 18.x FP3 Buildbot"
 
-CUSTOM_PACKAGES="GmsCore GsfProxy FakeStore MozillaNlpBackend NominatimNlpBackend com.google.android.maps.jar FDroid FDroidPrivilegedExtension AuroraServices"
+CUSTOM_PACKAGES="GmsCore GsfProxy FakeStore MozillaNlpBackend NominatimNlpBackend com.google.android.maps.jar FDroid FDroidPrivilegedExtension AuroraServices Snap"
 START=`date +%s`
 BUILD_DATE="$(date +%Y%m%d)"
 BL=$PWD/treble_build_los
