@@ -81,7 +81,7 @@ if [ $? -eq 0 ]; then
 		echo "========================================================="
 		userid=$(adb shell dumpsys package $package | grep userId | head -n 1 | cut -d "=" -f2-)
 		if [ -z $userid ]; then
-			(cd $dataapks/${package}*; adb install-multiple *.apk)
+			(cd `find $dataapks -name ${package}*` && adb install-multiple *.apk)
 			userid=$(adb shell dumpsys package $package | grep userId | head -n 1 | cut -d "=" -f2-)
 		fi
 		if [ -z $userid ]; then
