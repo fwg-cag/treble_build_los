@@ -1,0 +1,30 @@
+From 16df1e08ce5b9fd50c3ca71df2e30dd81b417fd9 Tue Jan 31 08:45:45 2022 +0100
+From: fwg-cag <fwg-cag@outlook.com>
+Date:   Tue Jan 31 08:45:45 2022 +0100
+
+    Prefer lineage platform SPL
+    
+    Change-Id: I5eed600e097e8f3409dc9282f70cf243216314fc
+
+diff --git a/packages/SettingsLib/src/com/android/settingslib/DeviceInfoUtils.java b/packages/SettingsLib/src/com/android/settingslib/DeviceInfoUtils.java
+index ff00fb3282b1..69d975dbcfb8 100644
+--- a/packages/SettingsLib/src/com/android/settingslib/DeviceInfoUtils.java
++++ b/packages/SettingsLib/src/com/android/settingslib/DeviceInfoUtils.java
+@@ -22,6 +22,7 @@ import android.content.pm.ApplicationInfo;
+ import android.content.pm.PackageManager;
+ import android.content.pm.ResolveInfo;
+ import android.os.Build;
++import android.os.SystemProperties;
+ import android.system.Os;
+ import android.system.StructUtsname;
+ import android.telephony.PhoneNumberUtils;
+@@ -154,7 +155,8 @@ public class DeviceInfoUtils {
+     }
+ 
+     public static String getSecurityPatch() {
+-        String patch = Build.VERSION.SECURITY_PATCH;
++        String patch = SystemProperties.get(
++                "ro.lineage.build.version.security_patch", Build.VERSION.SECURITY_PATCH);
+         if (!"".equals(patch)) {
+             try {
+                 SimpleDateFormat template = new SimpleDateFormat("yyyy-MM-dd");

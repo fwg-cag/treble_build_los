@@ -1,0 +1,38 @@
+From 16df1e08ce5b9fd50c3ca71df2e30dd81b417fd8 Tue Jan 31 07:45:45 2022 +0100
+From: fwg-cag <fwg-cag@outlook.com>
+Date:   Tue Jan 31 07:45:45 2022 +0100
+
+    Allow overriding platform SPL
+    
+    Change-Id: I5eed600e097e8f3409dc9282f70cf243216314fb
+
+diff --git a/core/Makefile b/core/Makefile
+index 82987646e9..f774ab6616 100644
+--- a/core/Makefile
++++ b/core/Makefile
+@@ -445,6 +445,7 @@ $(intermediate_system_build_prop): $(BUILDINFO_SH) $(BUILDINFO_COMMON_SH) $(INTE
+ 	        PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+ 	        PLATFORM_VERSION_LAST_STABLE="$(PLATFORM_VERSION_LAST_STABLE)" \
+ 	        PLATFORM_SECURITY_PATCH="$(PLATFORM_SECURITY_PATCH)" \
++	        PLATFORM_SECURITY_PATCH_OVERRIDE="$(PLATFORM_SECURITY_PATCH_OVERRIDE)" \
+ 	        PLATFORM_BASE_OS="$(PLATFORM_BASE_OS)" \
+ 	        PLATFORM_SDK_VERSION="$(PLATFORM_SDK_VERSION)" \
+ 	        PLATFORM_PREVIEW_SDK_VERSION="$(PLATFORM_PREVIEW_SDK_VERSION)" \
+diff --git a/tools/buildinfo.sh b/tools/buildinfo.sh
+index 954a01fb28..24541b105e 100755
+--- a/tools/buildinfo.sh
++++ b/tools/buildinfo.sh
+@@ -13,7 +13,12 @@ echo "ro.build.version.codename=$PLATFORM_VERSION_CODENAME"
+ echo "ro.build.version.all_codenames=$PLATFORM_VERSION_ALL_CODENAMES"
+ echo "ro.build.version.release=$PLATFORM_VERSION_LAST_STABLE"
+ echo "ro.build.version.release_or_codename=$PLATFORM_VERSION"
+-echo "ro.build.version.security_patch=$PLATFORM_SECURITY_PATCH"
++if [ -n "$PLATFORM_SECURITY_PATCH_OVERRIDE" ] ; then
++  echo "ro.build.version.security_patch=$PLATFORM_SECURITY_PATCH_OVERRIDE"
++  echo "ro.lineage.build.version.security_patch=$PLATFORM_SECURITY_PATCH"
++else
++  echo "ro.build.version.security_patch=$PLATFORM_SECURITY_PATCH"
++fi
+ echo "ro.build.version.base_os=$PLATFORM_BASE_OS"
+ echo "ro.build.version.min_supported_target_sdk=$PLATFORM_MIN_SUPPORTED_TARGET_SDK_VERSION"
+ echo "ro.build.date=`$DATE`"

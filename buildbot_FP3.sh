@@ -22,8 +22,8 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   echo ""
   sleep 5
 
-  echo "Remove previous changes of device/fairphone/FP3, vendor/lineage, frameworks/base and prebuilts/prebuiltapks (if they exist)"
-  for path in "device/fairphone/FP3" "vendor/lineage" "frameworks/base" "prebuilts/prebuiltapks"; do
+  echo "Remove previous changes of device/fairphone/FP3, vendor/lineage, build/make/tools, frameworks/base and prebuilts/prebuiltapks (if they exist)"
+  for path in "device/fairphone/FP3" "vendor/lineage" "build/make/tools" "frameworks/base" "prebuilts/prebuiltapks"; do
     (cd "$path" && git reset -q --hard && git clean -q -fd && git am --abort 2>/dev/null)
   done
 
@@ -70,6 +70,19 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   cd packages/apps/Email || exit
   git am $BL/patches/0001-Enable-EmailAPP-querability-R.patch
   cd ../../..
+  cd device/fairphone/FP3 || exit
+  git am $BL/patches/0001-Swap-Snap-Camera.patch
+  cd ../../..
+  cd build/make/tools || exit
+  git am $BL/patches/0001-Allow-overriding-platform-SPL.patch
+  cd ../../..
+  cd frameworks/base
+  git am $BL/patches/0001-Prefer-lineage-platform-SPL.patch
+  cd ../..
+  if [ -f vendor/fairphone/FP3/lineage_FP3.mk.add ]; then
+    echo Adding SafetyNET CTSprofile spoofing
+    cat vendor/fairphone/FP3/lineage_FP3.mk.add >> device/fairphone/FP3/lineage_FP3.mk
+  fi
 ##  cd lineage-sdk
 ##  git am $BL/patches/0001-sdk-Invert-per-app-stretch-to-fullscreen.patch
 ##  cd ..

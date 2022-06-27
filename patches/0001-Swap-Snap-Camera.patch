@@ -1,0 +1,60 @@
+From 16df1e08ce5b9fd50c3ca71df2e30dd81b417fd7 Tue Jan 25 07:44:44 2022 +0100
+From: fwg-cag <fwg-cag@outlook.com>
+Date:   Tue Jan 25 07:44:44 2022 +0100
+
+    Snap required selinux permissions added
+    
+    Change-Id: I5eed600e097e8f3409dc9282f70cf243216314fa
+
+diff --git a/sepolicy/vendor/hal_camera_default.te b/sepolicy/vendor/hal_camera_default.te
+index 69fa3df..d0a9a04 100644
+--- a/sepolicy/vendor/hal_camera_default.te
++++ b/sepolicy/vendor/hal_camera_default.te
+@@ -1 +1,4 @@
++set_prop(hal_camera_default, vendor_info_camera_prop)
++allow hal_camera_default vendor_info_camera_prop:property_service set;
++
+ allow hal_camera_default camera_prop:property_service set;
+diff --git a/system.prop b/system.prop
+index 129593c..71d341f 100644
+--- a/system.prop
++++ b/system.prop
+@@ -16,14 +16,36 @@ bluetooth.hfp.client=1
+ ro.bluetooth.library_name=libbluetooth_qti.so
+ 
+ # Camera
+-persist.vendor.camera.lib2d.rotation=on
+-persist.vendor.camera.isp.clock.optmz=0
++# Lib2d and Clock.Optmz no longer present at 0134
++# persist.vendor.camera.lib2d.rotation=on
++# persist.vendor.camera.isp.clock.optmz=0
+ persist.vendor.camera.display.umax=1920x1080
+ persist.vendor.camera.display.lmax=1280x720
+ # Expose aux camera for below packages
+ # vendor.camera.aux.packagelist=org.codeaurora.snapcam
++# GD >>
++# Enable aux camera
++persist.vendor.camera.expose.aux=1
++# General taken from 0134
++vendor.camera.aux.packagelist=org.lineageos.snap
++dalvik.vm.heapsize=36m
++media.stagefright.thumbnail.prefer_hw_codecs=true
++persist.vendor.cne.feature=1
++ro.vendor.qti.va_aosp.support=1
++# Property to enable VDS WFD solution
++debug.sf.enable_hwc_vds=1
++persist.hwc.enable_vds=1
++persist.hwc.mdpcomp.enable=true
++# System property to accelerate Progressive Download using STA
++persist.mm.sta.enable=0
++# Disable awb sync in bokeh mode - needed?
++# persist.vendor.camera.awb.sync=2
++# Enable diff front and back camera face detect file - needed?
++# persist.vendor.camera.imglib.usefdlite=1
++# << GD
+ # Force HAL1 for below packages
+ #vendor.camera.hal1.packagelist=com.skype.raider,com.google.android.talk
++#vendor.camera.hal1.packagelist=org.lineageos.snap
+ # low power mode for camera
+ vendor.camera.lowpower.record.enable=1
+ 
