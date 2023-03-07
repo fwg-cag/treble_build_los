@@ -109,7 +109,7 @@ if [ $? -eq 0 ]; then
 
 # restore user(s) settings and restart the android framework
 	adb push -p $datasystem/users $remotesystem
-	adb push -p $datasystem/locksettings.db $remotesystem
+#	adb push -p $datasystem/locksettings.db $remotesystem
 	userid=$(adb shell dumpsys package android | grep userId | head -n 1 | cut -d "=" -f2-)
 	adb shell chown -R $userid:$userid $remotesystem
 	adb shell killall zygote
@@ -122,4 +122,5 @@ cd $OLDWD
 chmod u+w -R $TMPD
 rm -fr $TMPD
 
+echo "!!!You MUST set a new PIN before rebooting!!!"
 

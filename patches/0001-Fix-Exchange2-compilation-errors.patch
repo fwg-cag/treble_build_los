@@ -1,0 +1,36 @@
+From 16df1e08ce5b9fd50c3ca71df2e30dd81b417fd9 Tue Oct 31 07:45:45 2022 +0100
+From: fwg-cag <fwg-cag@outlook.com>
+Date:   Tue Oct 31 07:45:45 2022 +0100
+
+    Fix Exchange2 compilation errors
+    
+    Change-Id: I5eed600e097e8f3409dc9282f70cf243216314fc
+
+diff --git a/Android.mk b/Android.mk
+index f1087748..558acd75 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -35,6 +35,8 @@ LOCAL_STATIC_ANDROID_LIBRARIES := androidx.core_core
+ LOCAL_STATIC_JAVA_LIBRARIES := android-common com.android.emailcommon
+ LOCAL_STATIC_JAVA_LIBRARIES += calendar-common
+
++LOCAL_USES_LIBRARIES := org.apache.http.legacy
++
+ LOCAL_PACKAGE_NAME := Exchange2
+ LOCAL_OVERRIDES_PACKAGES := Exchange
+
+diff --git a/proguard.flags b/proguard.flags
+index eee5f124..69e788e1 100644
+--- a/proguard.flags
++++ b/proguard.flags
+@@ -17,3 +17,10 @@
+ -keepclasseswithmembers class com.android.exchange.provider.MailboxUtilities {
+   *** setFlagsAndChildrensParentKey(android.content.Context, java.lang.String, java.lang.String);
+ }
++
++# Added for Android 12 build system
++-dontwarn com.google.errorprone.annotations.**
++
++-keep class com.google.errorprone.annotations.** {*;}
++
++-keep class kotlin.jvm.internal.Intrinsics

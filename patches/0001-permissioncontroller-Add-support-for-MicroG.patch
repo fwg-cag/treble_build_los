@@ -2,23 +2,21 @@ From 74a4ce1ec2264283692387d2c0c2b8762d767dbc Thu Dec 16 14:11:02 2021 +0100
 From: fwg-cag <fwg-cag@outlook.com>
 Date:   Thu Dec 16 14:11:02 2021 +0100
 
-    packages_apps_PermissionController-R.patch
+    packages_modules_Permission-S.patch
     
     Change-Id: I3b203716e670f658070d701cf0039279cb759546
 
-diff --git a/src/com/android/permissioncontroller/permission/utils/Utils.java b/src/com/android/permissioncontroller/permission/utils/Utils.java
-index 65fdd590a..fdd71e215 100644
---- a/src/com/android/permissioncontroller/permission/utils/Utils.java
-+++ b/src/com/android/permissioncontroller/permission/utils/Utils.java
-@@ -23,6 +23,7 @@ import static android.Manifest.permission_group.CALENDAR;
+--- a/PermissionController/src/com/android/permissioncontroller/permission/utils/Utils.java
++++ b/PermissionController/src/com/android/permissioncontroller/permission/utils/Utils.java
+@@ -21,6 +21,7 @@ import static android.Manifest.permission_group.CALENDAR;
  import static android.Manifest.permission_group.CALL_LOG;
  import static android.Manifest.permission_group.CAMERA;
  import static android.Manifest.permission_group.CONTACTS;
 +import static android.Manifest.permission_group.FAKE_PACKAGE;
  import static android.Manifest.permission_group.LOCATION;
  import static android.Manifest.permission_group.MICROPHONE;
- import static android.Manifest.permission_group.PHONE;
-@@ -209,6 +210,8 @@ public final class Utils {
+ import static android.Manifest.permission_group.NEARBY_DEVICES;
+@@ -281,6 +282,8 @@ public final class Utils {
  
          PLATFORM_PERMISSIONS.put(Manifest.permission.BODY_SENSORS, SENSORS);
  

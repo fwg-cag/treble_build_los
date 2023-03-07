@@ -5,9 +5,9 @@
 # https://android.googlesource.com/platform/bootable/recovery/+/master/updater_sample/res/raw/sample.json
 
 echo ""
-echo "LineageOS 18.x FP3 Buildbot"
+echo "LineageOS 19.x FP3 Buildbot"
 
-CUSTOM_PACKAGES="GmsCore GsfProxy FakeStore MozillaNlpBackend NominatimNlpBackend com.google.android.maps.jar FDroid FDroidPrivilegedExtension AuroraServices Snap"
+CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore MozillaNlpBackend NominatimNlpBackend com.google.android.maps.jar FDroid FDroidPrivilegedExtension AuroraServices"
 START=`date +%s`
 BUILD_DATE="$(date +%Y%m%d)"
 BL=$PWD/treble_build_los
@@ -64,24 +64,28 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   git am $TMPF
   rm -f $TMPF
   cd ../..
-  cd packages/apps/PermissionController || exit
+  cd packages/modules/Permission || exit
   git am $BL/patches/0001-permissioncontroller-Add-support-for-MicroG.patch
   cd ../../..
   cd packages/apps/Email || exit
   git am $BL/patches/0001-Enable-EmailAPP-querability-R.patch
   cd ../../..
-  cd device/fairphone/FP3 || exit
-  git am $BL/patches/0001-Swap-Snap-Camera.patch
+  cd packages/apps/Exchange || exit
+  git am $BL/patches/0001-Fix-Exchange2-compilation-errors.patch
   cd ../../..
-  cd build/make/tools || exit
+  cd build/make || exit
   git am $BL/patches/0001-Allow-overriding-platform-SPL.patch
-  cd ../../..
+  cd ../..
   cd frameworks/base
   git am $BL/patches/0001-Prefer-lineage-platform-SPL.patch
   cd ../..
   if [ -f vendor/fairphone/FP3/lineage_FP3.mk.add ]; then
-    echo Adding SafetyNET CTSprofile spoofing
+    echo Adding:   SafetyNET CTSprofile spoofing 1/2
     cat vendor/fairphone/FP3/lineage_FP3.mk.add >> device/fairphone/FP3/lineage_FP3.mk
+  fi
+  if [ -f vendor/fairphone/FP3/BoardConfig.mk.add ]; then
+    echo and SafetyNET CTSprofile spoofing 2/2
+    cat vendor/fairphone/FP3/BoardConfig.mk.add >> device/fairphone/FP3/BoardConfig.mk
   fi
 ##  cd lineage-sdk
 ##  git am $BL/patches/0001-sdk-Invert-per-app-stretch-to-fullscreen.patch
@@ -137,7 +141,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
     echo "Running before.sh"
     ./user-scripts/before.sh
   fi
-  
+exit 0
   echo "CHECK PATCH STATUS NOW!"
   sleep 5
   echo ""
@@ -158,7 +162,7 @@ buildVariant() {
 	make installclean || exit 1
 	mka bacon -j$NPROC || exit 1
 
-	BUILD=lineage-18.1-$BUILD_DATE-UNOFFICIAL-${1}
+	BUILD=lineage-19.1-$BUILD_DATE-UNOFFICIAL-${1}
 	if ! [ -z "$OTA_URL" ] && ! [ -z "$OTA_DEVICE" ]; then
 	  # Generate .json file
 	  JSON_NAME=$(grep ro.build.display.id $OUT/obj/PACKAGING/target_files_intermediates/*${1}-target_files-*/SYSTEM/build.prop | sed -e "s/ /\//g" | awk -F= '{print $2}')
@@ -177,7 +181,7 @@ buildVariant() {
       "romtype": "unofficial",
       "size": $(du -bs ~/build-output/$BUILD.zip | awk '{print $1}'),
       "url": "$JSON_URL",
-      "version": "18.1"
+      "version": "19.1"
     }
   ]
 }
@@ -192,4 +196,4 @@ ELAPSEDM=$(($(($END-$START))/60))
 ELAPSEDS=$(($(($END-$START))-$ELAPSEDM*60))
 echo "Buildbot completed in $ELAPSEDM minutes and $ELAPSEDS seconds"
 echo ""
-(cd ~/build-output && ls | grep "lineage-18.1-$BUILD_DATE-*")
+(cd ~/build-output && ls | grep "lineage-19.1-$BUILD_DATE-*")
