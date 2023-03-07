@@ -1,17 +1,17 @@
-From 16df1e08ce5b9fd50c3ca71df2e30dd81b417fd8 Tue Jan 31 07:45:45 2022 +0100
+From d4463389ea29f672181f119ba37fc7ecc2cf0495 Tue Mar 7 11:05:25 2023 +0100
 From: fwg-cag <fwg-cag@outlook.com>
-Date:   Tue Jan 31 07:45:45 2022 +0100
+Date:   Tue Mar 7 11:05:25 2023 +0100
 
     Allow overriding platform SPL
     
-    Change-Id: I5eed600e097e8f3409dc9282f70cf243216314fb
+    Change-Id: Ia5dfd186d202893d0032dc1f45e4f6834a40c8b0
 
 diff --git a/core/sysprop.mk b/core/sysprop.mk
-index 5dc0ec1f69..b417e647d4 100644
+index 5ff93a13e..286aeb034 100644
 --- a/core/sysprop.mk
 +++ b/core/sysprop.mk
-@@ -268,6 +268,7 @@ $(gen_from_buildinfo_sh): $(INTERNAL_BUILD_ID_MAKEFILE) $(API_FINGERPRINT) | $(B
- 	        PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+@@ -279,6 +279,7 @@ $(gen_from_buildinfo_sh): $(INTERNAL_BUILD_ID_MAKEFILE) $(API_FINGERPRINT) | $(B
+ 	        PLATFORM_DISPLAY_VERSION="$(PLATFORM_DISPLAY_VERSION)" \
  	        PLATFORM_VERSION_LAST_STABLE="$(PLATFORM_VERSION_LAST_STABLE)" \
  	        PLATFORM_SECURITY_PATCH="$(PLATFORM_SECURITY_PATCH)" \
 +	        PLATFORM_SECURITY_PATCH_OVERRIDE="$(PLATFORM_SECURITY_PATCH_OVERRIDE)" \
@@ -19,13 +19,13 @@ index 5dc0ec1f69..b417e647d4 100644
  	        PLATFORM_SDK_VERSION="$(PLATFORM_SDK_VERSION)" \
  	        PLATFORM_PREVIEW_SDK_VERSION="$(PLATFORM_PREVIEW_SDK_VERSION)" \
 diff --git a/tools/buildinfo.sh b/tools/buildinfo.sh
-index f0627a307c..f378309fb3 100755
+index c00e1e98b..55d2bd05c 100755
 --- a/tools/buildinfo.sh
 +++ b/tools/buildinfo.sh
-@@ -18,7 +18,12 @@ echo "ro.build.version.codename=$PLATFORM_VERSION_CODENAME"
- echo "ro.build.version.all_codenames=$PLATFORM_VERSION_ALL_CODENAMES"
+@@ -20,7 +20,12 @@ echo "ro.build.version.known_codenames=$PLATFORM_VERSION_KNOWN_CODENAMES"
  echo "ro.build.version.release=$PLATFORM_VERSION_LAST_STABLE"
  echo "ro.build.version.release_or_codename=$PLATFORM_VERSION"
+ echo "ro.build.version.release_or_preview_display=$PLATFORM_DISPLAY_VERSION"
 -echo "ro.build.version.security_patch=$PLATFORM_SECURITY_PATCH"
 +if [ -n "$PLATFORM_SECURITY_PATCH_OVERRIDE" ] ; then
 +  echo "ro.build.version.security_patch=$PLATFORM_SECURITY_PATCH_OVERRIDE"

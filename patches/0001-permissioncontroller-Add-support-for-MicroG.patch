@@ -1,11 +1,13 @@
-From 74a4ce1ec2264283692387d2c0c2b8762d767dbc Thu Dec 16 14:11:02 2021 +0100
+From 74a4ce1ec2264283692387d2c0c2b8762d767dbd Thu Dec 16 14:11:02 2022 +0100
 From: fwg-cag <fwg-cag@outlook.com>
-Date:   Thu Dec 16 14:11:02 2021 +0100
+Date:   Thu Dec 16 14:11:02 2022 +0100
 
-    packages_modules_Permission-S.patch
+    packages_modules_Permission-Android13.patch
     
-    Change-Id: I3b203716e670f658070d701cf0039279cb759546
+    Change-Id: I3b203716e670f658070d701cf0039279cb759547
 
+diff --git a/PermissionController/src/com/android/permissioncontroller/permission/utils/Utils.java b/PermissionController/src/com/android/permissioncontroller/permission/utils/Utils.java
+index 48793ab51..d75a58360 100644
 --- a/PermissionController/src/com/android/permissioncontroller/permission/utils/Utils.java
 +++ b/PermissionController/src/com/android/permissioncontroller/permission/utils/Utils.java
 @@ -21,6 +21,7 @@ import static android.Manifest.permission_group.CALENDAR;
@@ -16,9 +18,9 @@ Date:   Thu Dec 16 14:11:02 2021 +0100
  import static android.Manifest.permission_group.LOCATION;
  import static android.Manifest.permission_group.MICROPHONE;
  import static android.Manifest.permission_group.NEARBY_DEVICES;
-@@ -281,6 +282,8 @@ public final class Utils {
- 
-         PLATFORM_PERMISSIONS.put(Manifest.permission.BODY_SENSORS, SENSORS);
+@@ -341,6 +342,8 @@ public final class Utils {
+             PLATFORM_PERMISSIONS.put(Manifest.permission.BODY_SENSORS_BACKGROUND, SENSORS);
+         }
  
 +        PLATFORM_PERMISSIONS.put(Manifest.permission.FAKE_PACKAGE_SIGNATURE, FAKE_PACKAGE);
 +

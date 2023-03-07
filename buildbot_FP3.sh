@@ -5,9 +5,9 @@
 # https://android.googlesource.com/platform/bootable/recovery/+/master/updater_sample/res/raw/sample.json
 
 echo ""
-echo "LineageOS 19.x FP3 Buildbot"
+echo "LineageOS 20.x FP3 Buildbot"
 
-CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore MozillaNlpBackend NominatimNlpBackend com.google.android.maps.jar FDroid FDroidPrivilegedExtension AuroraServices"
+CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore IchnaeaNlpBackend NominatimGeocoderBackend FDroid additional_repos.xml FDroidPrivilegedExtension AuroraServices"
 START=`date +%s`
 BUILD_DATE="$(date +%Y%m%d)"
 BL=$PWD/treble_build_los
@@ -162,7 +162,7 @@ buildVariant() {
 	make installclean || exit 1
 	mka bacon -j$NPROC || exit 1
 
-	BUILD=lineage-19.1-$BUILD_DATE-UNOFFICIAL-${1}
+	BUILD=lineage-20.0-$BUILD_DATE-UNOFFICIAL-${1}
 	if ! [ -z "$OTA_URL" ] && ! [ -z "$OTA_DEVICE" ]; then
 	  # Generate .json file
 	  JSON_NAME=$(grep ro.build.display.id $OUT/obj/PACKAGING/target_files_intermediates/*${1}-target_files-*/SYSTEM/build.prop | sed -e "s/ /\//g" | awk -F= '{print $2}')
@@ -181,7 +181,7 @@ buildVariant() {
       "romtype": "unofficial",
       "size": $(du -bs ~/build-output/$BUILD.zip | awk '{print $1}'),
       "url": "$JSON_URL",
-      "version": "19.1"
+      "version": "20.0"
     }
   ]
 }
@@ -196,4 +196,4 @@ ELAPSEDM=$(($(($END-$START))/60))
 ELAPSEDS=$(($(($END-$START))-$ELAPSEDM*60))
 echo "Buildbot completed in $ELAPSEDM minutes and $ELAPSEDS seconds"
 echo ""
-(cd ~/build-output && ls | grep "lineage-19.1-$BUILD_DATE-*")
+(cd ~/build-output && ls | grep "lineage-20.0-$BUILD_DATE-*")
