@@ -68,7 +68,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   git am $BL/patches/0001-permissioncontroller-Add-support-for-MicroG.patch
   cd ../../..
   cd packages/apps/Email || exit
-  git am $BL/patches/0001-Enable-EmailAPP-querability-R.patch
+  git am $BL/patches/0001-Enable-EmailAPP-S.patch
   cd ../../..
   cd packages/apps/Exchange || exit
   git am $BL/patches/0001-Fix-Exchange2-compilation-errors.patch
