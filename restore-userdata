@@ -18,7 +18,7 @@ fi
 # tar / TWRP location for data
 TMPD=$(mktemp -d)
 OLDWD=$PWD
-dataupdate='user_de/0 misc/profiles/cur/0 data' # data must be last!
+dataupdate='user/0 user_de/0 misc/profiles/cur/0 data'
 dataapks='app'
 datasystem='system'
 datamedia='media'
@@ -43,14 +43,15 @@ if [ $? -ne 0 ]; then
 	echo "========================================================="
 fi
 
-# extract tar / TWRP archive to $TMPD and check that all required content is available
+ extract tar / TWRP archive to $TMPD and check that all required content is available
 for i in $@; do
 	if [ ! -z $(file $1 | grep "gzip compressed data") ]; then
-		tar xvzf $i -C $TMPD 2>/dev/null || break
+		tar xpvzf $i -C $TMPD 2>/dev/null || break
 	else
-		tar xvf $i -C $TMPD 2>/dev/null || break
+		tar xpvf $i -C $TMPD 2>/dev/null || break
 	fi
 done
+
 for dir in $dataupdate $dataapks $datasystem; do
 	if [ ! -d $TMPD/$dir ]; then
 		echo -e "\033[1;31mError: Wrong archive: Couldn't find $dir\033[0m" 1>&2
@@ -68,8 +69,12 @@ cd $TMPD
 	com.android.internal.display.cutout.emulation.noCutoutGSI \
 	com.android.safetyregulatoryinfo \
 	com.android.service.ims* \
+	com.google.android.g* \
+	android* \
 	*\.phh.\* \
 )
+# remove lock files e.g. for fennec, which may cause trouble
+find . -name lock -exec rm -f {} \;
 
 # filename(s) of all packages in data/data/ to restore
 packages=$(cd data; ls -d *)
@@ -93,11 +98,11 @@ if [ $? -eq 0 ]; then
 			adb shell pm clear $package
 			printf "Restoring %s:\n" $package
 			for datadir in $dataupdate; do
-				adb push -p $datadir/$package $remotebase/$datadir
+				tar cpf - $datadir/$package | adb exec-in "cd $remotebase; tar -vxp" # instead of adb push to maintain permissions
 				adb shell chown -R $userid:$userid $remotebase/$datadir/$package
+				adb shell restorecon -Rv $remotebase/$datadir/$package
 			done
-			adb shell restorecon -Rv $remotebase/$datadir/$package &&
-				echo "... $package restored on device"
+			echo "... $package restored on device"
 		fi
 	done
 
@@ -123,4 +128,3 @@ chmod u+w -R $TMPD
 rm -fr $TMPD
 
 echo "!!!You MUST set a new PIN before rebooting!!!"
-

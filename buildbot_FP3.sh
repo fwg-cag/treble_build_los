@@ -141,7 +141,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
     echo "Running before.sh"
     ./user-scripts/before.sh
   fi
-exit 0
+# exit 0 # For debugging purposes
   echo "CHECK PATCH STATUS NOW!"
   sleep 5
   echo ""

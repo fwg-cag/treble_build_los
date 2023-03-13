@@ -22,7 +22,7 @@ fi
 adb shell 'ls /data/data' 1>/dev/null 2>&1
 if [ $? -eq 0 ]; then
 	echo "Starting the backup ... be patient!"
-	adb shell 'cd /data; tar czf - --exclude="[Cc]ache/*" data misc user_de system media app' 2>&1 >$1 | 
+	adb shell 'cd /data; tar czpf - --exclude="*[Cc]ache*" data misc user user_de system media app' 2>&1 >$1 | 
 		grep -v "^tar: unknown file type" 1>&2
 	echo "Done."
 else
