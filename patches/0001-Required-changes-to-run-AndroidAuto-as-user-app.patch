@@ -1,0 +1,106 @@
+From cde5dfc952297da1b0cf6cc7779abb70024c2f52 Mon Sep 17 00:00:00 2001
+From: sn00x <90611925+sn-00-x@users.noreply.github.com>
+Date: Thu, 4 May 2023 14:06:31 +0200
+Subject: Required changes to run AndroidAuto as user app - GD mod
+
+---
+ core/res/res/values/config.xml                |  2 +-
+ .../PermissionManagerServiceImpl.java         | 28 +++++++++++++++++++
+ 2 files changed, 29 insertions(+), 1 deletion(-)
+
+diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
+index 9cffd4be507b..3aba12e3ab0a 100644
+--- a/core/res/res/values/config.xml
++++ b/core/res/res/values/config.xml
+@@ -2169,7 +2169,7 @@
+     <!-- The name of the package that will hold the system gallery role. -->
+     <string name="config_systemGallery" translatable="false">com.android.gallery3d</string>
+     <!-- The names of the packages that will hold the automotive projection role. -->
+-    <string name="config_systemAutomotiveProjection" translatable="false"></string>
++    <string name="config_systemAutomotiveProjection" translatable="false">com.google.android.projection.gearhead</string>
+     <!-- The name of the package that will hold the system cluster service role. -->
+     <string name="config_systemAutomotiveCluster" translatable="false"></string>
+     <!-- The name of the package that will hold the system shell role. -->
+diff --git a/services/core/java/com/android/server/pm/permission/PermissionManagerServiceImpl.java b/services/core/java/com/android/server/pm/permission/PermissionManagerServiceImpl.java
+index e92d49327cc8..752cc161d27b 100644
+--- a/services/core/java/com/android/server/pm/permission/PermissionManagerServiceImpl.java
++++ b/services/core/java/com/android/server/pm/permission/PermissionManagerServiceImpl.java
+@@ -177,6 +177,61 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
+     private static final String SKIP_KILL_APP_REASON_NOTIFICATION_TEST = "skip permission revoke "
+             + "app kill for notification test";
+ 
++    /** Define allowed permissions for Android Auto */
++    private ArrayList<String> androidAutoPerms = new ArrayList<String>(
++            Arrays.asList(
++                    "android.permission.ACCESS_NETWORK_CONDITIONS",
++                    "android.permission.ACCESS_NETWORK_STATE",
++                    "android.permission.ACCESS_WIFI_STATE",
++                    "android.permission.ACTIVITY_EMBEDDING",
++                    "android.permission.ADD_ALWAYS_UNLOCKED_DISPLAY",
++                    "android.permission.BLUETOOTH",
++                    "android.permission.BLUETOOTH_ADMIN",
++                    "android.permission.BLUETOOTH_CONNECT",
++                    "android.permission.BLUETOOTH_PRIVILEGED",
++                    "android.permission.BLUETOOTH_SCAN",
++                    "android.permission.CHANGE_COMPONENT_ENABLED_STATE",
++                    "android.permission.CHANGE_NETWORK_STATE",
++                    "android.permission.CHANGE_WIFI_STATE",
++                    "android.permission.COMPANION_APPROVE_WIFI_CONNECTIONS",
++                    "android.permission.CONNECTIVITY_USE_RESTRICTED_NETWORKS",
++                    "android.permission.CONTROL_INCALL_EXPERIENCE",
++                    "android.permission.CREATE_VIRTUAL_DEVICE",
++                    "android.permission.ENTER_CAR_MODE_PRIORITIZED",
++                    "android.permission.FOREGROUND_SERVICE",
++                    "android.permission.INTERACT_ACROSS_PROFILES",
++                    "android.permission.INTERNAL_SYSTEM_WINDOW",
++                    "android.permission.LOCAL_MAC_ADDRESS",
++                    "android.permission.LOCATION_HARDWARE",
++                    "android.permission.MANAGE_COMPANION_DEVICES",
++                    "android.permission.MANAGE_USB",
++                    "android.permission.MODIFY_AUDIO_ROUTING",
++                    "android.permission.MODIFY_DAY_NIGHT_MODE",
++                    "android.permission.MODIFY_PHONE_STATE",
++                    "android.permission.OBSERVE_GRANT_REVOKE_PERMISSIONS",
++                    "android.permission.OVERRIDE_WIFI_CONFIG",
++                    "android.permission.READ_PHONE_STATE",
++                    "android.permission.READ_PRIVILEGED_PHONE_STATE",
++                    "android.permission.RECEIVE_BOOT_COMPLETED",
++                    "android.permission.REMOTE_DISPLAY_PROVIDER",
++                    "android.permission.REQUEST_COMPANION_PROFILE_AUTOMOTIVE_PROJECTION",
++                    "android.permission.REQUEST_COMPANION_SELF_MANAGED",
++                    "android.permission.START_ACTIVITIES_FROM_BACKGROUND",
++                    "android.permission.START_TASKS_FROM_RECENTS",
++                    "android.permission.TOGGLE_AUTOMOTIVE_PROJECTION",
++                    "android.permission.WRITE_SETTINGS",
++                    "androidx.car.app.ACCESS_SURFACE",
++                    "androidx.car.app.NAVIGATION_TEMPLATES",
++                    "com.google.android.projection.gearhead.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
++                    "com.google.android.projection.gearhead.permission.START_PROJECTED_ACTIVITY"
++            )
++    );
++    private Set<String> androidAutoHashes = new ArraySet<>(
++            Arrays.asList(
++                    "FDB00C43DBDE8B51CB312AA81D3B5FA17713ADB94B28F598D77F8EB89DACEEDF", // CN=gearhead, OU=Android, O=Google Inc., L=Mountain View, ST=California, C=US
++                    "1975B2F17177BC89A5DFF31F9E64A6CAE281A53DC1D1D59B1D147FE1C82AFA00" // EMAILADDRESS=android@android.com, CN=Android, OU=Android, O=Android, L=Mountain View, ST=California, C=US
++            )
++    );
+ 
+     private static final long BACKUP_TIMEOUT_MILLIS = SECONDS.toMillis(60);
+ 
+@@ -964,6 +984,14 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
+                 return PackageManager.PERMISSION_DENIED;
+             }
+ 
++            if (pkg.getPackageName() == "com.google.android.projection.gearhead") {
++                if(pkg.getSigningDetails().hasAncestorOrSelfWithDigest(androidAutoHashes)) {
++                    if (androidAutoPerms.contains(permissionName)) {
++                        return PackageManager.PERMISSION_GRANTED;
++                    }
++                }
++            }
++
+             if (checkSinglePermissionInternalLocked(uidState, permissionName, isInstantApp)) {
+                 return PackageManager.PERMISSION_GRANTED;
+             }
+-- 
+2.34.1

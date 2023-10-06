@@ -7,7 +7,8 @@
 echo ""
 echo "LineageOS 20.x FP3 Buildbot"
 
-CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore IchnaeaNlpBackend NominatimGeocoderBackend FDroid additional_repos.xml FDroidPrivilegedExtension AuroraServices"
+#CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore IchnaeaNlpBackend NominatimGeocoderBackend FDroid additional_repos.xml FDroidPrivilegedExtension AuroraServices"
+CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore IchnaeaNlpBackend NominatimGeocoderBackend FDroid additional_repos.xml FDroidPrivilegedExtension AuroraServices AndroidAutoStubPrebuilt gappsstub speechservicestub"
 START=`date +%s`
 BUILD_DATE="$(date +%Y%m%d)"
 BL=$PWD/treble_build_los
@@ -42,6 +43,13 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   breakfast FP3
   echo ""
 
+#  echo "Pick recent cherries"
+#  cd device/fairphone/FP3
+#  git fetch https://github.com/LineageOS/android_device_fairphone_FP3 refs/changes/40/350940/1 && git cherry-pick FETCH_HEAD
+#  git fetch https://github.com/LineageOS/android_device_fairphone_FP3 refs/changes/41/350941/1 && git cherry-pick FETCH_HEAD
+#  git fetch https://github.com/LineageOS/android_device_fairphone_FP3 refs/changes/42/350942/1 && git cherry-pick FETCH_HEAD
+#  cd ../../..
+
 ##  echo "Reverting LOS FOD implementation"
 ##  cd frameworks/base
 ##  git am $BL/patches/0001-Squashed-revert-of-LOS-FOD-implementation.patch
@@ -62,6 +70,8 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   TMPF=$(mktemp)
   sed 's/android:protectionLevel="dangerous"/android:protectionLevel="signature|privileged"/' $BL/patches/0001-core-Add-support-for-MicroG.patch > $TMPF
   git am $TMPF
+  # Required changes to run AndroidAuto as user app
+  git am $BL/patches/0001-Required-changes-to-run-AndroidAuto-as-user-app.patch
   rm -f $TMPF
   cd ../..
   cd packages/modules/Permission || exit
@@ -107,14 +117,22 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   mkdir -p "vendor/lineage/overlay/microg/frameworks/base/core/res/res/values/"
   cp $BL/patches/frameworks_base_config.xml "vendor/lineage/overlay/microg/frameworks/base/core/res/res/values/config.xml"
 
-  # Set a custom updater URI if a OTA URL is provided
+  # Set a custom updater URL if a OTA URL is provided
   if ! [ -z "$OTA_URL" ]; then
-    echo "Set custom updater URI to $OTA"
-    updater_url_overlay_dir="vendor/lineage/overlay/microg/packages/apps/Updater/res/values/"
+    echo "Set custom updater URL to $OTA_URL"
+    if [ -n "$(grep updater_server_url packages/apps/Updater/app/src/main/res/values/strings.xml)" ]; then
+      updater_url_overlay_dir="vendor/lineage/overlay/microg/packages/apps/Updater/app/src/main/res/values/"
+    else
+      updater_url_overlay_dir="vendor/lineage/overlay/microg/packages/apps/Updater/res/values/"
+    fi
     mkdir -p "$updater_url_overlay_dir"
 
-    if [ -n "$(grep updater_server_url packages/apps/Updater/res/values/strings.xml)" ]; then
+    if [ -n "$(grep updater_server_url packages/apps/Updater/app/src/main/res/values/strings.xml)" ]; then
+      # New location
       # "New" updater configuration: full URL (with placeholders {device}, {type} and {incr})
+#      sed "s|{name}|updater_server_url|g; s|{url}|$OTA_URL/v1/{device}/{type}/{incr}|g" $BL/patches/packages_updater_strings.xml > "$updater_url_overlay_dir/strings.xml"
+      sed "s|{name}|updater_server_url|g; s|{url}|$OTA_URL|g" $BL/patches/packages_updater_strings.xml > "$updater_url_overlay_dir/strings.xml"
+    elif [ -n "$(grep updater_server_url packages/apps/Updater/res/values/strings.xml)" ]; then
 #      sed "s|{name}|updater_server_url|g; s|{url}|$OTA_URL/v1/{device}/{type}/{incr}|g" $BL/patches/packages_updater_strings.xml > "$updater_url_overlay_dir/strings.xml"
       sed "s|{name}|updater_server_url|g; s|{url}|$OTA_URL|g" $BL/patches/packages_updater_strings.xml > "$updater_url_overlay_dir/strings.xml"
     elif [ -n "$(grep conf_update_server_url_def packages/apps/Updater/res/values/strings.xml)" ]; then
@@ -137,9 +155,11 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
     sed -i "1s;^;PRODUCT_DEFAULT_DEV_CERTIFICATE := user-keys/releasekey\nPRODUCT_OTA_PUBLIC_KEYS := user-keys/releasekey\n\n;" "vendor/lineage/config/common.mk"
   fi
   unzip -o $BL/AuroraServices.zip
+  unzip -o $BL/AndroidAuto.zip && mv -f packages/overlays/Lineage/fonts/etc/Android.mk packages/overlays/Lineage/fonts/etc/Android.mk_old
+  echo "You may ingnore: 'mv: cannot stat 'packages/overlays/Lineage/fonts/etc/Android.mk': No such file or directory'"
   if [ -f ./user-scripts/before.sh ]; then
     echo "Running before.sh"
-    ./user-scripts/before.sh
+    ./user-scripts/before.sh || exit 1
   fi
 # exit 0 # For debugging purposes
   echo "CHECK PATCH STATUS NOW!"
