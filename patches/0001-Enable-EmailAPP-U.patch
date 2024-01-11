@@ -1,6 +1,6 @@
-From dc1469f84a08c96c8a823b44d779e7c40f49eb4b Wed Mar 8 10:20:09 2023 +0100
+From dc1469f84a08c96c8a823b44d779e7c40f49eb4c Wed Jan 8 10:20:09 2024 +0100
 From: fwg-cag <fwg-cag@outlook.com>
-Date: Wed Mar 8 10:20:09 2023 +0100
+Date: Wed Jan 8 10:20:09 2024 +0100
 
     Make Email accessible for other apps, e.g. Etar
     
@@ -23,7 +23,15 @@ diff --git a/AndroidManifest.xml b/AndroidManifest.xml
 index 69af221f8..fe292726e 100644
 --- a/AndroidManifest.xml
 +++ b/AndroidManifest.xml
-@@ -89,6 +89,7 @@
+@@ -22,6 +22,7 @@
+      c is a code which increments per version, in case we have multiple releases
+           on the same date. This should start at zero. -->
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:tools="http://schemas.android.com/tools"
+     package="com.android.email"
+     android:versionCode="7008110" >
+ 
+@@ -89,6 +90,7 @@
      <application
          android:name=".EmailApplication"
          android:icon="@mipmap/ic_launcher"
@@ -31,3 +39,16 @@ index 69af221f8..fe292726e 100644
          android:label="@string/app_name"
          android:requiredAccountType="com.android.exchange,com.android.email"
          android:theme="@style/UnifiedEmailTheme.Appcompat"
+@@ -392,6 +394,12 @@
+         <!-- additional activities -->
+ 
+         <provider
++            android:name="androidx.startup.InitializationProvider"
++            android:authorities="com.android.email.androidx-startup"
++            android:exported="false"
++            tools:replace="android:authorities" />
++
++        <provider
+             android:authorities="com.android.email.conversation.provider"
+             android:label="@string/conversation_content_provider"
+             android:exported="true"

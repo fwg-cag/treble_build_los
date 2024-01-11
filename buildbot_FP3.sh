@@ -5,7 +5,7 @@
 # https://android.googlesource.com/platform/bootable/recovery/+/master/updater_sample/res/raw/sample.json
 
 echo ""
-echo "LineageOS 20.x FP3 Buildbot"
+echo "LineageOS 21.x FP3 Buildbot"
 
 #CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore IchnaeaNlpBackend NominatimGeocoderBackend FDroid additional_repos.xml FDroidPrivilegedExtension AuroraServices"
 CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore IchnaeaNlpBackend NominatimGeocoderBackend FDroid additional_repos.xml FDroidPrivilegedExtension AuroraServices AndroidAutoStubPrebuilt gappsstub speechservicestub"
@@ -78,7 +78,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   git am $BL/patches/0001-permissioncontroller-Add-support-for-MicroG.patch
   cd ../../..
   cd packages/apps/Email || exit
-  git am $BL/patches/0001-Enable-EmailAPP-S.patch
+  git am $BL/patches/0001-Enable-EmailAPP-U.patch
   cd ../../..
   cd packages/apps/Exchange || exit
   git am $BL/patches/0001-Fix-Exchange2-compilation-errors.patch
@@ -143,16 +143,30 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
       exit 1
     fi
   fi
-  # Add custom packages to be installed
+# Add custom packages to be installed
   if ! [ -z "$CUSTOM_PACKAGES" ]; then
     echo "Adding custom packages ($CUSTOM_PACKAGES)"
     sed -i "1s;^;PRODUCT_PACKAGES += $CUSTOM_PACKAGES\n\n;" "vendor/lineage/config/common.mk"
   fi
-  # Sign if user-keys dir is present,
-  # e.g. mkdir user-keys && cd user-keys && ln -s ../build/make/target/product/security/* && ln -s ~/android-certs/* .; cd ..
-  # https://source.android.com/devices/tech/ota/sign_builds
+# Sign if user-keys dir is present,
+# e.g. mkdir user-keys && cd user-keys && ln -s ../build/make/target/product/security/* && ln -s ~/android-certs/* .; cd ..
+# https://source.android.com/devices/tech/ota/sign_builds
+#
+# BUILD file needs to be copies for bazel to work from user-keysout/soong/workspace/user-keys, e.g.
+# filegroup(
+#     name = "android_certificate_directory",
+#     srcs = glob([
+#         "*.pk8",
+#         "*.pem"
+#     ]),
+#     visibility = ["//visibility:public"]
+# )
   if [ -d user-keys ]; then
     sed -i "1s;^;PRODUCT_DEFAULT_DEV_CERTIFICATE := user-keys/releasekey\nPRODUCT_OTA_PUBLIC_KEYS := user-keys/releasekey\n\n;" "vendor/lineage/config/common.mk"
+# Potential alternative approach
+#    mkdir -p vendor/lineage-priv/keys/
+#    echo "PRODUCT_DEFAULT_DEV_CERTIFICATE := user-keys/releasekey" > vendor/lineage-priv/keys/keys.mk
+#    echo "PRODUCT_OTA_PUBLIC_KEYS := user-keys/releasekey" >> vendor/lineage-priv/keys/keys.mk
   fi
   unzip -o $BL/AuroraServices.zip
   unzip -o $BL/AndroidAuto.zip && mv -f packages/overlays/Lineage/fonts/etc/Android.mk packages/overlays/Lineage/fonts/etc/Android.mk_old
@@ -182,7 +196,7 @@ buildVariant() {
 	make installclean || exit 1
 	mka bacon -j$NPROC || exit 1
 
-	BUILD=lineage-20.0-$BUILD_DATE-UNOFFICIAL-${1}
+	BUILD=lineage-21.0-$BUILD_DATE-UNOFFICIAL-${1}
 	if ! [ -z "$OTA_URL" ] && ! [ -z "$OTA_DEVICE" ]; then
 	  # Generate .json file
 	  JSON_NAME=$(grep ro.build.display.id $OUT/obj/PACKAGING/target_files_intermediates/*${1}-target_files-*/SYSTEM/build.prop | sed -e "s/ /\//g" | awk -F= '{print $2}')
@@ -201,7 +215,7 @@ buildVariant() {
       "romtype": "unofficial",
       "size": $(du -bs ~/build-output/$BUILD.zip | awk '{print $1}'),
       "url": "$JSON_URL",
-      "version": "20.0"
+      "version": "21.0"
     }
   ]
 }
@@ -216,4 +230,4 @@ ELAPSEDM=$(($(($END-$START))/60))
 ELAPSEDS=$(($(($END-$START))-$ELAPSEDM*60))
 echo "Buildbot completed in $ELAPSEDM minutes and $ELAPSEDS seconds"
 echo ""
-(cd ~/build-output && ls | grep "lineage-20.0-$BUILD_DATE-*")
+(cd ~/build-output && ls | grep "lineage-21.0-$BUILD_DATE-*")
