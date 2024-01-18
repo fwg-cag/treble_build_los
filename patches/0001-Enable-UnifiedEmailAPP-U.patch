@@ -1,0 +1,25 @@
+From c9a06813ad978f84e06a91c892918c47c370e465 Thu Jan 18 11:40:47 2024 +0100
+From: fwg-cag <fwg-cag@outlook.com>
+Date: Thu Jan 18 11:40:47 2024 +0100
+
+    Skip setNdefPushMessageCallback as this feature is @removed in U
+    
+    Change-Id: I62f5d4d8717c9d44da3632aefeee6075a0e34f10
+
+diff --git a/src/com/android/mail/ui/MailActivity.java b/src/com/android/mail/ui/MailActivity.java
+index 2d4b991db..d07463f01 100644
+--- a/src/com/android/mail/ui/MailActivity.java
++++ b/src/com/android/mail/ui/MailActivity.java
+@@ -200,9 +200,9 @@ public class MailActivity extends AbstractMailActivity implements ControllableAc
+                 (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
+         mAccessibilityEnabled = mAccessibilityManager.isEnabled();
+         final NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+-        if (nfcAdapter != null) {
+-            nfcAdapter.setNdefPushMessageCallback(mNdefHandler, this);
+-        }
++//        if (nfcAdapter != null) {
++//            nfcAdapter.setNdefPushMessageCallback(mNdefHandler, this);
++//        }
+ 
+         // Detect presence of hardware keyboard and log it on Analytics
+         final int hardKeyboardHidden = getResources().getConfiguration().hardKeyboardHidden;
