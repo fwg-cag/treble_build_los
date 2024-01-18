@@ -124,7 +124,7 @@ index 78f1fa60b69f..cb81a7d445ba 100644
                      state.getFirstInstallTimeMillis(), ps.getLastUpdateTime(), installedPermissions,
 -                    grantedPermissions, state, userId, ps);
 +                    grantedPermissions, state, userId, ps),
-+                    permissions);
++                    grantedPermissions);
  
              if (packageInfo == null) {
                  return null;

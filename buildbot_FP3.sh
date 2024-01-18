@@ -80,6 +80,9 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   cd packages/apps/Email || exit
   git am $BL/patches/0001-Enable-EmailAPP-U.patch
   cd ../../..
+  cd packages/apps/UnifiedEmail || exit
+  git am $BL/patches/0001-Enable-UnifiedEmailAPP-U.patch
+  cd ../../..
   cd packages/apps/Exchange || exit
   git am $BL/patches/0001-Fix-Exchange2-compilation-errors.patch
   cd ../../..
