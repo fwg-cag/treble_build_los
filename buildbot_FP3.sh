@@ -49,6 +49,9 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
 #  git fetch https://github.com/LineageOS/android_device_fairphone_FP3 refs/changes/41/350941/1 && git cherry-pick FETCH_HEAD
 #  git fetch https://github.com/LineageOS/android_device_fairphone_FP3 refs/changes/42/350942/1 && git cherry-pick FETCH_HEAD
 #  cd ../../..
+#  cd kernel/fairphone/sdm632/
+#  git fetch https://github.com/LineageOS/android_kernel_fairphone_sdm632 refs/changes/34/383834/2 && git cherry-pick FETCH_HEAD
+#  cd ../../..
 
 ##  echo "Reverting LOS FOD implementation"
 ##  cd frameworks/base
@@ -67,12 +70,14 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
 ##  git am $BL/patches/0001-UI-Revive-navbar-layout-tuning-via-sysui_nav_bar-tun.patch
   # FAKE_SIGNATURE permission can be obtained only by privileged system apps
   # git am $BL/patches/0001-core-Add-support-for-MicroG.patch
-  TMPF=$(mktemp)
-  sed 's/android:protectionLevel="dangerous"/android:protectionLevel="signature|privileged"/' $BL/patches/0001-core-Add-support-for-MicroG.patch > $TMPF
-  git am $TMPF
+###  TMPF=$(mktemp)
+###  git revert 6b793fa98a40dd6c2d6eb02988161ed123439428 --no-edit # microg-eval
+###  sed 's/android:protectionLevel="dangerous"/android:protectionLevel="signature|privileged"/' $BL/patches/0001-core-Add-support-for-MicroG.patch > $TMPF
+###  git am $TMPF || (rm -f $TMPF; exit)
+###  rm -f $TMPF
+  git am $BL/patches/0002-core-Add-support-for-MicroG.patch || exit
   # Required changes to run AndroidAuto as user app
-  git am $BL/patches/0001-Required-changes-to-run-AndroidAuto-as-user-app.patch
-  rm -f $TMPF
+  git am $BL/patches/0001-Required-changes-to-run-AndroidAuto-as-user-app.patch || exit
   cd ../..
   cd packages/modules/Permission || exit
   git am $BL/patches/0001-permissioncontroller-Add-support-for-MicroG.patch

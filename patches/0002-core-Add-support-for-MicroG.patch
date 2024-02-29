@@ -1,0 +1,26 @@
+From 2c445c8622b62546a8cd71757cba9b26552a6967 Thu Feb 29 14:09:05 2024 +0100
+From: fwg-cag <fwg-cag@outlook.com>
+Date:   Thu Feb 29 14:09:05 2024 +0100
+
+    android_frameworks_base-Android14.patch
+    
+    Change-Id: I64ce9f16085c18db10b5596d5770f12e0fd21ea4
+
+diff --git a/services/core/java/com/android/server/pm/ComputerEngine.java b/services/core/java/com/android/server/pm/ComputerEngine.java
+index 216c7a7fda3a..a646f2950bd8 100644
+--- a/services/core/java/com/android/server/pm/ComputerEngine.java
++++ b/services/core/java/com/android/server/pm/ComputerEngine.java
+@@ -1459,9 +1459,10 @@ public class ComputerEngine implements Computer {
+     private static native boolean isDebuggable();
+ 
+     public static boolean isMicrogSigned(AndroidPackage p) {
+-        if (!isDebuggable()) {
+-            return false;
+-        }
++        // Alow in any case
++        // if (!isDebuggable()) {
++        //     return false;
++        // }
+ 
+         // Allowlist the following apps:
+         // * com.android.vending - microG Companion
