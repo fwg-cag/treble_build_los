@@ -35,6 +35,19 @@ diff --git a/proguard.flags b/proguard.flags
 index eee5f124..69e788e1 100644
 --- a/proguard.flags
 +++ b/proguard.flags
+@@ -1,9 +1,9 @@
+ # keep names that are used by reflection.
+
+ # Keep names that are used only by unit tests
+--keep class ** {
+-  *** *ForTest(...);
+-}
++#-keep class ** {
++#  *** *ForTest(...);
++#} # Causes FAILED: R8: (...) "Item kotlin.coroutines.jvm.internal.DebugMetadata was not discarded."
+
+ -keepclasseswithmembers class com.android.exchange.adapter.Parser {
+   *** resetInput(java.io.InputStream);
 @@ -17,3 +17,10 @@
  -keepclasseswithmembers class com.android.exchange.provider.MailboxUtilities {
    *** setFlagsAndChildrensParentKey(android.content.Context, java.lang.String, java.lang.String);

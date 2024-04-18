@@ -3,5 +3,8 @@
   <project name="LineageOS/android_packages_apps_Email" path="packages/apps/Email" remote="github" revision="lineage-17.1" />
   <project name="LineageOS/android_packages_apps_UnifiedEmail" path="packages/apps/UnifiedEmail" remote="github" revision="lineage-17.1" />
   <project name="LineageOS/android_packages_apps_Exchange" path="packages/apps/Exchange" remote="github" revision="lineage-17.1" />
+  <remove-project name="platform/packages/apps/Gallery2"/>
+  <remove-project name="LineageOS/android_packages_apps_Glimpse"/>
+  <project name="CalyxOS/platform_packages_apps_Gallery2" path="packages/apps/Gallery2" remote="github" revision="android14" />
   <project name="lineageos4microg/android_vendor_partner_gms" path="prebuilts/prebuiltapks" remote="github" revision="master" />
 </manifest>

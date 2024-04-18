@@ -11,6 +11,7 @@ echo "LineageOS 21.x FP3 Buildbot"
 CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore IchnaeaNlpBackend NominatimGeocoderBackend FDroid additional_repos.xml FDroidPrivilegedExtension AuroraServices AndroidAutoStubPrebuilt gappsstub speechservicestub"
 START=`date +%s`
 BUILD_DATE="$(date +%Y%m%d)"
+RELEASE="21.0"
 BL=$PWD/treble_build_los
 if [ -e $NPROC ]; then
     NPROC=`nproc --all`
@@ -49,9 +50,6 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
 #  git fetch https://github.com/LineageOS/android_device_fairphone_FP3 refs/changes/41/350941/1 && git cherry-pick FETCH_HEAD
 #  git fetch https://github.com/LineageOS/android_device_fairphone_FP3 refs/changes/42/350942/1 && git cherry-pick FETCH_HEAD
 #  cd ../../..
-#  cd kernel/fairphone/sdm632/
-#  git fetch https://github.com/LineageOS/android_kernel_fairphone_sdm632 refs/changes/34/383834/2 && git cherry-pick FETCH_HEAD
-#  cd ../../..
 
 ##  echo "Reverting LOS FOD implementation"
 ##  cd frameworks/base
@@ -70,18 +68,17 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
 ##  git am $BL/patches/0001-UI-Revive-navbar-layout-tuning-via-sysui_nav_bar-tun.patch
   # FAKE_SIGNATURE permission can be obtained only by privileged system apps
   # git am $BL/patches/0001-core-Add-support-for-MicroG.patch
-###  TMPF=$(mktemp)
-###  git revert 6b793fa98a40dd6c2d6eb02988161ed123439428 --no-edit # microg-eval
-###  sed 's/android:protectionLevel="dangerous"/android:protectionLevel="signature|privileged"/' $BL/patches/0001-core-Add-support-for-MicroG.patch > $TMPF
-###  git am $TMPF || (rm -f $TMPF; exit)
-###  rm -f $TMPF
+  #  TMPF=$(mktemp)
+  #  sed 's/android:protectionLevel="dangerous"/android:protectionLevel="signature|privileged"/' $BL/patches/0001-core-Add-support-for-MicroG.patch > $TMPF
+  #  git am $TMPF || (rm -f $TMPF; exit)
+  #  rm -f $TMPF
   git am $BL/patches/0002-core-Add-support-for-MicroG.patch || exit
   # Required changes to run AndroidAuto as user app
   git am $BL/patches/0001-Required-changes-to-run-AndroidAuto-as-user-app.patch || exit
   cd ../..
-  cd packages/modules/Permission || exit
-  git am $BL/patches/0001-permissioncontroller-Add-support-for-MicroG.patch
-  cd ../../..
+  #  cd packages/modules/Permission || exit
+  #  git am $BL/patches/0001-permissioncontroller-Add-support-for-MicroG.patch
+  #  cd ../../..
   cd packages/apps/Email || exit
   git am $BL/patches/0001-Enable-EmailAPP-U.patch
   cd ../../..
@@ -118,6 +115,8 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
 #  cd ../..
   echo ""
 
+  echo "Removing Glimpse"
+  sed -i "s;Glimpse; ;" "vendor/lineage/config/common_mobile.mk"
   echo "Adding microg"
   mkdir -p "vendor/lineage/overlay/microg/"
   sed -i "1s;^;PRODUCT_PACKAGE_OVERLAYS := vendor/lineage/overlay/microg\n;" "vendor/lineage/config/common.mk"
@@ -178,7 +177,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   fi
   unzip -o $BL/AuroraServices.zip
   unzip -o $BL/AndroidAuto.zip && mv -f packages/overlays/Lineage/fonts/etc/Android.mk packages/overlays/Lineage/fonts/etc/Android.mk_old
-  echo "You may ingnore: 'mv: cannot stat 'packages/overlays/Lineage/fonts/etc/Android.mk': No such file or directory'"
+  echo "You may ignore: 'mv: cannot stat 'packages/overlays/Lineage/fonts/etc/Android.mk': No such file or directory'" 1>&2
   if [ -f ./user-scripts/before.sh ]; then
     echo "Running before.sh"
     ./user-scripts/before.sh || exit 1
@@ -193,21 +192,22 @@ echo "Setting up build environment"
 source build/envsetup.sh &> /dev/null
 echo ""
 
-export WITHOUT_CHECK_API=true
+# export WITHOUT_CHECK_API=true # breaks building LOS-21 as of QPR2
 # Commented out for security resons
 #export WITH_SU=true
 mkdir -p ~/build-output/
 
 buildVariant() {
         breakfast ${1} || exit 1
-        lunch lineage_${1}-userdebug || exit 1
+        # TARGET_RELEASE=$(sed -e 's/aosp_target_release=//;t;d' vendor/lineage/vars/aosp_target_release)
+        # lunch lineage_${1}-$TARGET_RELEASE-userdebug || exit 1
 	make installclean || exit 1
 	mka bacon -j$NPROC || exit 1
 
-	BUILD=lineage-21.0-$BUILD_DATE-UNOFFICIAL-${1}
+	BUILD=lineage-$RELEASE-$BUILD_DATE-UNOFFICIAL-${1}
 	if ! [ -z "$OTA_URL" ] && ! [ -z "$OTA_DEVICE" ]; then
 	  # Generate .json file
-	  JSON_NAME=$(grep ro.build.display.id $OUT/obj/PACKAGING/target_files_intermediates/*${1}-target_files-*/SYSTEM/build.prop | sed -e "s/ /\//g" | awk -F= '{print $2}')
+	  JSON_NAME=$(grep ro.build.display.id $OUT/obj/PACKAGING/target_files_intermediates/*${1}-target_files*/SYSTEM/build.prop | sed -e "s/ /\//g" | awk -F= '{print $2}')
 	  # Note: Testing to install the payload.bin on the device can be done via 
 	  # update_engine_client --payload=file:///data/ota_package/payload.bin --update --follow --headers="FILE_HASH=(...)"
 	  mv -f $OUT/$BUILD.zip ~/build-output/ || exit 1
@@ -223,7 +223,7 @@ buildVariant() {
       "romtype": "unofficial",
       "size": $(du -bs ~/build-output/$BUILD.zip | awk '{print $1}'),
       "url": "$JSON_URL",
-      "version": "21.0"
+      "version": "$RELEASE"
     }
   ]
 }
@@ -238,4 +238,4 @@ ELAPSEDM=$(($(($END-$START))/60))
 ELAPSEDS=$(($(($END-$START))-$ELAPSEDM*60))
 echo "Buildbot completed in $ELAPSEDM minutes and $ELAPSEDS seconds"
 echo ""
-(cd ~/build-output && ls | grep "lineage-21.0-$BUILD_DATE-*")
+(cd ~/build-output && ls | grep "lineage-$RELEASE-$BUILD_DATE-*")
