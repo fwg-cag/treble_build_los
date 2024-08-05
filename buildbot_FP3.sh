@@ -47,8 +47,6 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
 #  echo "Pick recent cherries"
 #  cd device/fairphone/FP3
 #  git fetch https://github.com/LineageOS/android_device_fairphone_FP3 refs/changes/40/350940/1 && git cherry-pick FETCH_HEAD
-#  git fetch https://github.com/LineageOS/android_device_fairphone_FP3 refs/changes/41/350941/1 && git cherry-pick FETCH_HEAD
-#  git fetch https://github.com/LineageOS/android_device_fairphone_FP3 refs/changes/42/350942/1 && git cherry-pick FETCH_HEAD
 #  cd ../../..
 
 ##  echo "Reverting LOS FOD implementation"
