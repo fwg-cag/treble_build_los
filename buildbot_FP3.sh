@@ -174,8 +174,8 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
 #    echo "PRODUCT_OTA_PUBLIC_KEYS := user-keys/releasekey" >> vendor/lineage-priv/keys/keys.mk
   fi
   unzip -o $BL/AuroraServices.zip
-  unzip -o $BL/AndroidAuto.zip && mv -f packages/overlays/Lineage/fonts/etc/Android.mk packages/overlays/Lineage/fonts/etc/Android.mk_old
-  echo "You may ignore: 'mv: cannot stat 'packages/overlays/Lineage/fonts/etc/Android.mk': No such file or directory'" 1>&2
+  unzip -o $BL/AndroidAuto.zip && mv -f packages/overlays/Lineage/fonts/etc/Android.bp packages/overlays/Lineage/fonts/etc/Android.bp_old
+  echo "You may ignore: 'mv: cannot stat 'packages/overlays/Lineage/fonts/etc/Android.bp': No such file or directory'" 1>&2
   if [ -f ./user-scripts/before.sh ]; then
     echo "Running before.sh"
     ./user-scripts/before.sh || exit 1
