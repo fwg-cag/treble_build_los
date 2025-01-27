@@ -1,38 +1,39 @@
-From d4463389ea29f672181f119ba37fc7ecc2cf0495 Tue Mar 7 11:05:25 2023 +0100
+From d4463389ea29f672181f119ba37fc7ecc2cf0496 Fri Jan 17 11:05:25 2025 +0100
 From: fwg-cag <fwg-cag@outlook.com>
-Date:   Tue Mar 7 11:05:25 2023 +0100
+Date:   Fri Jan 17 11:05:25 2025 +0100
 
     Allow overriding platform SPL
     
-    Change-Id: Ia5dfd186d202893d0032dc1f45e4f6834a40c8b0
+    Change-Id: Ia5dfd186d202893d0032dc1f45e4f6834a40c8b1
 
-diff --git a/core/sysprop.mk b/core/sysprop.mk
-index 5ff93a13e..286aeb034 100644
---- a/core/sysprop.mk
-+++ b/core/sysprop.mk
-@@ -279,6 +279,7 @@ $(gen_from_buildinfo_sh): $(INTERNAL_BUILD_ID_MAKEFILE) $(API_FINGERPRINT) | $(B
- 	        PLATFORM_DISPLAY_VERSION="$(PLATFORM_DISPLAY_VERSION)" \
- 	        PLATFORM_VERSION_LAST_STABLE="$(PLATFORM_VERSION_LAST_STABLE)" \
- 	        PLATFORM_SECURITY_PATCH="$(PLATFORM_SECURITY_PATCH)" \
-+	        PLATFORM_SECURITY_PATCH_OVERRIDE="$(PLATFORM_SECURITY_PATCH_OVERRIDE)" \
- 	        PLATFORM_BASE_OS="$(PLATFORM_BASE_OS)" \
- 	        PLATFORM_SDK_VERSION="$(PLATFORM_SDK_VERSION)" \
- 	        PLATFORM_PREVIEW_SDK_VERSION="$(PLATFORM_PREVIEW_SDK_VERSION)" \
-diff --git a/tools/buildinfo.sh b/tools/buildinfo.sh
-index c00e1e98b..55d2bd05c 100755
---- a/tools/buildinfo.sh
-+++ b/tools/buildinfo.sh
-@@ -20,7 +20,12 @@ echo "ro.build.version.known_codenames=$PLATFORM_VERSION_KNOWN_CODENAMES"
- echo "ro.build.version.release=$PLATFORM_VERSION_LAST_STABLE"
- echo "ro.build.version.release_or_codename=$PLATFORM_VERSION"
- echo "ro.build.version.release_or_preview_display=$PLATFORM_DISPLAY_VERSION"
--echo "ro.build.version.security_patch=$PLATFORM_SECURITY_PATCH"
-+if [ -n "$PLATFORM_SECURITY_PATCH_OVERRIDE" ] ; then
-+  echo "ro.build.version.security_patch=$PLATFORM_SECURITY_PATCH_OVERRIDE"
-+  echo "ro.lineage.build.version.security_patch=$PLATFORM_SECURITY_PATCH"
+diff --git a/core/soong_config.mk b/core/soong_config.mk
+index c6da98d7dd..6a775d2f56 100644
+--- a/core/soong_config.mk
++++ b/core/soong_config.mk
+@@ -44,7 +44,11 @@
+ $(call add_json_val,  Platform_base_sdk_extension_version, $(PLATFORM_BASE_SDK_EXTENSION_VERSION))
+ $(call add_json_csv,  Platform_version_active_codenames, $(PLATFORM_VERSION_ALL_CODENAMES))
+ $(call add_json_csv,  Platform_version_all_preview_codenames, $(PLATFORM_VERSION_ALL_PREVIEW_CODENAMES))
++ifdef PLATFORM_SECURITY_PATCH_OVERRIDE
++$(call add_json_str,  Platform_security_patch,           $(PLATFORM_SECURITY_PATCH_OVERRIDE))
 +else
-+  echo "ro.build.version.security_patch=$PLATFORM_SECURITY_PATCH"
-+fi
- echo "ro.build.version.base_os=$PLATFORM_BASE_OS"
- echo "ro.build.version.min_supported_target_sdk=$PLATFORM_MIN_SUPPORTED_TARGET_SDK_VERSION"
- echo "ro.build.date=`$DATE`"
+ $(call add_json_str,  Platform_security_patch,           $(PLATFORM_SECURITY_PATCH))
++endif
+ $(call add_json_str,  Platform_preview_sdk_version,      $(PLATFORM_PREVIEW_SDK_VERSION))
+ $(call add_json_str,  Platform_base_os,                  $(PLATFORM_BASE_OS))
+ $(call add_json_str,  Platform_version_last_stable,      $(PLATFORM_VERSION_LAST_STABLE))
+diff --git a/core/sysprop_config.mk b/core/sysprop_config.mk
+index edb0794d0b..4873fe6cc9 100644
+--- a/core/sysprop_config.mk
++++ b/core/sysprop_config.mk
+@@ -138,6 +138,10 @@ ifeq ($(AB_OTA_UPDATER),true)
+ ADDITIONAL_VENDOR_PROPERTIES += ro.vendor.build.ab_ota_partitions=$(subst $(space),$(comma),$(sort $(AB_OTA_PARTITIONS)))
+ endif
+ 
++ifdef PLATFORM_SECURITY_PATCH_OVERRIDE
++ADDITIONAL_VENDOR_PROPERTIES += ro.lineage.build.version.security_patch=$(PLATFORM_SECURITY_PATCH)
++endif
++
+ user_variant := $(filter user userdebug,$(TARGET_BUILD_VARIANT))
+ 
+ config_enable_uffd_gc := \

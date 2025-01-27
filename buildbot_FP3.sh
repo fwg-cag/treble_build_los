@@ -5,13 +5,13 @@
 # https://android.googlesource.com/platform/bootable/recovery/+/master/updater_sample/res/raw/sample.json
 
 echo ""
-echo "LineageOS 21.x FP3 Buildbot"
+echo "LineageOS 22.x FP3 Buildbot"
 
 #CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore IchnaeaNlpBackend NominatimGeocoderBackend FDroid additional_repos.xml FDroidPrivilegedExtension AuroraServices"
 CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore IchnaeaNlpBackend NominatimGeocoderBackend FDroid additional_repos.xml FDroidPrivilegedExtension AuroraServices AndroidAutoStubPrebuilt gappsstub speechservicestub"
 START=`date +%s`
 BUILD_DATE="$(date +%Y%m%d)"
-RELEASE="21.0"
+RELEASE="22.1"
 BL=$PWD/treble_build_los
 if [ -e $NPROC ]; then
     NPROC=`nproc --all`
@@ -24,8 +24,8 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   echo ""
   sleep 5
 
-  echo "Remove previous changes of device/fairphone/FP3, vendor/lineage, build/make/tools, frameworks/base and prebuilts/prebuiltapks (if they exist)"
-  for path in "device/fairphone/FP3" "vendor/lineage" "build/make/tools" "frameworks/base" "prebuilts/prebuiltapks"; do
+  echo "Remove previous changes of device/fairphone/FP3, vendor/lineage, build/make|soong, frameworks/base and prebuilts/prebuiltapks (if they exist)"
+  for path in "device/fairphone/FP3" "vendor/lineage" "build/make" "build/soong" "frameworks/base" "prebuilts/prebuiltapks"; do
     (cd "$path" && git reset -q --hard && git clean -q -fd && git am --abort 2>/dev/null)
   done
 
@@ -38,6 +38,10 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   repo sync -c --force-sync --no-clone-bundle --no-tags -j$NPROC
   # || touch --date="last week" .repo/.repo_fetchtimes.json; exit 1 GD todo
   echo ""
+
+  echo "Remove prebuilts and packages from androidmk_denylist.go for the time being"
+  sed -i 's;"prebuilts/",;// "prebuilts/",;' build/soong/ui/build/androidmk_denylist.go
+  sed -i 's;"packages/",;// "packages/",;' build/soong/ui/build/androidmk_denylist.go
 
   echo "Preparing build environment"
   source build/envsetup.sh &> /dev/null
@@ -89,6 +93,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   cd build/make || exit
   git am $BL/patches/0001-Allow-overriding-platform-SPL.patch
   cd ../..
+  echo "ro.lineage.build.version.security_patch u:object_r:exported_default_prop:s0" >> device/fairphone/FP3/sepolicy/vendor/property_contexts
   cd frameworks/base
   git am $BL/patches/0001-Prefer-lineage-platform-SPL.patch
   cd ../..
@@ -113,8 +118,8 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
 #  cd ../..
   echo ""
 
-  echo "Removing Glimpse"
-  sed -i "s;Glimpse; ;" "vendor/lineage/config/common_mobile.mk"
+#  echo "Removing Glimpse"
+#  sed -i "s;Glimpse; ;" "vendor/lineage/config/common_mobile.mk"
   echo "Adding microg"
   mkdir -p "vendor/lineage/overlay/microg/"
   sed -i "1s;^;PRODUCT_PACKAGE_OVERLAYS := vendor/lineage/overlay/microg\n;" "vendor/lineage/config/common.mk"

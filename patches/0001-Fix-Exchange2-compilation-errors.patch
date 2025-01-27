@@ -1,16 +1,33 @@
-From 16df1e08ce5b9fd50c3ca71df2e30dd81b417fd9 Tue Oct 31 07:45:45 2022 +0100
+From 16df1e08ce5b9fd50c3ca71df2e30dd81b417fe0 Fri Jan 17 07:45:45 2025 +0100
 From: fwg-cag <fwg-cag@outlook.com>
-Date:   Tue Oct 31 07:45:45 2022 +0100
+Date:   Fri Jan 17 07:45:45 2025 +0100
 
     Fix Exchange2 compilation errors
     
-    Change-Id: I5eed600e097e8f3409dc9282f70cf243216314fc
+    Change-Id: I5eed600e097e8f3409dc9282f70cf243216314fd
 
 diff --git a/AndroidManifest.xml b/AndroidManifest.xml
-index e5868f0a..096b6c62 100644
+index e5868f0a..1062cf4f 100644
 --- a/AndroidManifest.xml
 +++ b/AndroidManifest.xml
-@@ -70,6 +70,7 @@
+@@ -16,6 +16,7 @@
+
+ <manifest
+     xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:tools="http://schemas.android.com/tools"
+     package="com.android.exchange"
+     android:versionCode="500065" >
+
+@@ -62,7 +63,7 @@
+     <uses-permission
+         android:name="com.android.email.permission.ACCESS_PROVIDER"/>
+
+-    <uses-sdk android:targetSdkVersion="23" android:minSdkVersion="14" />
++    <uses-sdk android:targetSdkVersion="23" android:minSdkVersion="14" tools:overrideLibrary="androidx.core" />
+
+     <!-- additional uses -->
+
+@@ -70,6 +71,7 @@
          android:icon="@mipmap/icon"
          android:label="@string/app_name"
          android:name="Exchange"
