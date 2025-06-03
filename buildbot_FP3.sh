@@ -11,7 +11,7 @@ echo "LineageOS 22.x FP3 Buildbot"
 CUSTOM_PACKAGES="Email Exchange2 GmsCore GsfProxy FakeStore FDroid additional_repos.xml FDroidPrivilegedExtension AuroraServices AndroidAutoStubPrebuilt gappsstub speechservicestub"
 START=`date +%s`
 BUILD_DATE="$(date +%Y%m%d)"
-RELEASE="22.1"
+RELEASE="22.2"
 BL=$PWD/treble_build_los
 if [ -e $NPROC ]; then
     NPROC=`nproc --all`
