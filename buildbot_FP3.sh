@@ -25,7 +25,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   sleep 5
 
   echo "Remove previous changes of device/fairphone/FP3, vendor/lineage, build/make|soong, frameworks/base and prebuilts/prebuiltapks (if they exist)"
-  for path in "device/fairphone/FP3" "vendor/lineage" "build/make" "build/soong" "frameworks/base" "prebuilts/prebuiltapks"; do
+  for path in "device/fairphone/FP3" "vendor/lineage" "build/make" "build/soong" "frameworks/base" "system/core" "prebuilts/prebuiltapks"; do
     (cd "$path" && git reset -q --hard && git clean -q -fd && git am --abort 2>/dev/null)
   done
 
@@ -96,6 +96,9 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   echo "ro.lineage.build.version.security_patch u:object_r:exported_default_prop:s0" >> device/fairphone/FP3/sepolicy/vendor/property_contexts
   cd frameworks/base
   git am $BL/patches/0001-Prefer-lineage-platform-SPL.patch
+  cd ../..
+  cd system/core
+  git am $BL/patches/0001-Pass-SafetyNet.patch
   cd ../..
   if [ -f vendor/fairphone/FP3/lineage_FP3.mk.add ]; then
     echo Adding:   SafetyNET CTSprofile spoofing 1/2
