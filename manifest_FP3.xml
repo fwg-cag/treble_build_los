@@ -3,5 +3,5 @@
   <project name="LineageOS/android_packages_apps_Email" path="packages/apps/Email" remote="github" revision="lineage-17.1" />
   <project name="LineageOS/android_packages_apps_UnifiedEmail" path="packages/apps/UnifiedEmail" remote="github" revision="lineage-17.1" />
   <project name="LineageOS/android_packages_apps_Exchange" path="packages/apps/Exchange" remote="github" revision="lineage-17.1" />
-  <project name="lineageos4microg/android_vendor_partner_gms" path="prebuilts/prebuiltapks" remote="github" revision="master" />
+  <project name="lineageos4microg/android_vendor_partner_gms" path="vendor/partner_gms" remote="github" revision="master" />
 </manifest>

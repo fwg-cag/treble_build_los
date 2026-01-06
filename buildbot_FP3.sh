@@ -25,7 +25,7 @@ if [ `stat -c %Y .repo/.repo_fetchtimes.json` -lt $(expr `date +%s` - 43200) ]; 
   sleep 5
 
   echo "Remove previous changes of device/fairphone/FP3, vendor/lineage, build/make|soong, frameworks/base and prebuilts/prebuiltapks (if they exist)"
-  for path in "device/fairphone/FP3" "vendor/lineage" "build/make" "build/soong" "frameworks/base" "system/core" "prebuilts/prebuiltapks"; do
+  for path in "device/fairphone/FP3" "vendor/lineage" "build/make" "build/soong" "frameworks/base" "system/core" "prebuilts/prebuiltapks" "vendor/partner_gms"; do
     (cd "$path" && git reset -q --hard && git clean -q -fd && git am --abort 2>/dev/null)
   done
 
